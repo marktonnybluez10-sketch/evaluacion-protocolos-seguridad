@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Integral de Evaluación y Estadísticas de Seguridad Industrial</title>
+  <!-- Chart.js para visualizaciones estadísticas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #15325b;
+      --primary-dark: #0d1e37;
+      --accent: #d97706;
+      --secondary: #0284c7;
+      --success: #15803d;
+      --danger: #b91c1c;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 20px 14px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1080px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 24px 20px;
+      background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+      color: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border-bottom: 4px solid var(--accent);
+    }
+
+    .company-tag {
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    header h1 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      font-size: 0.95rem;
+      color: #e2e8f0;
+    }
+
+    /* Barra de Navegación por Pestañas */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      background: #e2e8f0;
+      padding: 6px;
+      border-radius: 10px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: var(--primary);
+      background: rgba(255,255,255,0.6);
+    }
+
+    .tab-btn.active {
+      background: white;
+      color: var(--primary);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .tab-badge {
+      background: var(--secondary);
+      color: white;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 26px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input, select {
+      padding: 11px 14px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      font-size: 0.95rem;
+      background: #fff;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    .notice-box {
+      background-color: #eff6ff;
+      border-left: 4px solid var(--secondary);
+      padding: 14px 16px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      color: #1e3a8a;
+      margin: 16px 0;
+      line-height: 1.5;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 13px 22px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .btn-success {
+      background: var(--success);
+    }
+    .btn-success:hover {
+      background: #14532d;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+    .btn-danger:hover {
+      background: #7f1d1d;
+    }
+
+    /* Estilos de Preguntas */
+    .question-card {
+      margin-bottom: 20px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .q-number {
+      color: var(--secondary);
+      background: #e0f2fe;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .q-point {
+      color: #78350f;
+      background: #fef3c7;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+
+    .question-text {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    .options-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.15s;
+      background: #fafafa;
+    }
+
+    .option-label:hover {
+      background-color: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    .option-label input[type="radio"] {
+      margin-top: 3px;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* Resultados individuales */
+    .result-summary {
+      text-align: center;
+      padding: 16px 10px;
+    }
+
+    .score-circle {
+      width: 135px;
+      height: 135px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 2.1rem;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+
+    .score-approved {
+      background: linear-gradient(135deg, #15803d, #22c55e);
+    }
+
+    .score-failed {
+      background: linear-gradient(135deg, #b91c1c, #ef4444);
+    }
+
+    .score-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .worker-badge {
+      display: inline-block;
+      background: #f8fafc;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      margin-bottom: 20px;
+      text-align: left;
+      line-height: 1.7;
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 620px;
+    }
+
+    .breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    .breakdown-table th, .breakdown-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .breakdown-table th {
+      background: #f8fafc;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.78rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge-success { background: #dcfce7; color: #15803d; }
+    .badge-danger { background: #fee2e2; color: #b91c1c; }
+
+    /* KPI CARDS (DASHBOARD) */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .kpi-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .kpi-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Gráficos Grid */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 640px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+
+    .chart-box h3 {
+      font-size: 1rem;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 270px;
+      width: 100%;
+    }
+
+    /* Histórico */
+    .history-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    .search-box {
+      padding: 9px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      width: 280px;
+      font-size: 0.9rem;
+    }
+
+    .history-table-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      text-align: left;
+    }
+
+    .history-table th, .history-table td {
+      padding: 11px 13px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .history-table th {
+      background: #f8fafc;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
+
+    .history-table tr:hover {
+      background-color: #f1f5f9;
+    }
+
+    .btn-sm-del {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .btn-sm-del:hover {
+      background: #fca5a5;
+    }
+
+    @media print {
+      body { padding: 0; background: white; }
+      .no-print, .nav-tabs { display: none !important; }
+      .card { box-shadow: none; border: 1px solid #94a3b8; }
+      header { background: #15325b !important; color: white !important; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="company-tag">Gunderson Concarril | A Greenbrier Company</div>
+    <h1>Sistema de Evaluación y Métricas de Seguridad Industrial</h1>
+    <p>Banco Dinámico de Protocolos y Tablero Estadístico de Competencias</p>
+  </header>
+
+  <!-- PESTAÑAS PRINCIPALES -->
+  <div class="nav-tabs no-print">
+    <button class="tab-btn active" id="tabQuizBtn" onclick="switchTab('quiz')">
+      <span>📝</span> Evaluación de Protocolo
+    </button>
+    <button class="tab-btn" id="tabDashBtn" onclick="switchTab('dashboard')">
+      <span>📊</span> Tablero Estadístico y Gráficos
+      <span class="tab-badge" id="badgeCount">0</span>
+    </button>
+    <button class="tab-btn" id="tabHistBtn" onclick="switchTab('history')">
+      <span>📁</span> Historial y Base de Datos
+    </button>
+  </div>
+
+  <!-- VISTA 1: EVALUACIÓN (SETUP + EXAMEN + RESULTADO) -->
+  <div id="view-quiz">
+    <!-- Setup Inicial -->
+    <section id="setup-section" class="card">
+      <div class="section-title">
+        <span>📋</span> Registro del Evaluado y Selección del Protocolo
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="workerName">Nombre Completo del Trabajador</label>
+          <input type="text" id="workerName" placeholder="Ej. Roberto Sánchez Gómez" required>
+        </div>
+        <div class="form-group">
+          <label for="workerId">Matrícula / Número de Nómina</label>
+          <input type="text" id="workerId" placeholder="Ej. 104592" required>
+        </div>
+        <div class="form-group">
+          <label for="workerArea">Área / Nave Operativa</label>
+          <input type="text" id="workerArea" placeholder="Ej. Nave 2 - Armado de Carros" required>
+        </div>
+        <div class="form-group">
+          <label for="workerRole">Puesto de Trabajo</label>
+          <input type="text" id="workerRole" placeholder="Ej. Soldador / Operador de Grúa" required>
+        </div>
+        <div class="form-group">
+          <label for="evalDate">Fecha de Evaluación</label>
+          <input type="date" id="evalDate">
+        </div>
+        <div class="form-group">
+          <label for="protocolSelect">Protocolo a Evaluar</label>
+          <select id="protocolSelect">
+            <!-- Opciones dinámicas de los 10 protocolos -->
+          </select>
+        </div>
+      </div>
+
+      <div class="notice-box">
+        <strong>⚙️ Mecánica de Evaluación y Registro:</strong>
+        <ul style="margin-left: 20px; margin-top: 5px;">
+          <li>El banco contiene <strong>todos los reactivos técnicos</strong> del protocolo seleccionado.</li>
+          <li>Al iniciar se extraerán <strong>10 preguntas aleatorias</strong> (Fisher-Yates) con opciones barajadas.</li>
+          <li>Cada acierto suma <strong>10%</strong> de conocimiento (Mínimo aprobatorio: <strong>80%</strong>).</li>
+          <li>Al calificar, <strong>el resultado se guardará automáticamente en la base de datos local</strong> para alimentar las estadísticas y gráficos.</li>
+        </ul>
+      </div>
+
+      <button class="btn" style="width: 100%;" onclick="startEvaluation()">🚀 Iniciar Evaluación (10 Preguntas Aleatorias)</button>
+    </section>
+
+    <!-- Examen Activo -->
+    <section id="quiz-section" class="card" style="display: none;">
+      <div class="section-title" id="quiz-title">
+        <span>📝</span> Examen en Proceso
+      </div>
+      <div id="questions-container"></div>
+      <button class="btn" style="width: 100%; margin-top: 20px;" onclick="submitEvaluation()">✅ Calificar, Guardar y Finalizar</button>
+    </section>
+
+    <!-- Resultado Individual -->
+    <section id="results-section" class="card" style="display: none;">
+      <div class="result-summary">
+        <div id="scoreCircle" class="score-circle">
+          <span id="scorePercent">0%</span>
+          <span class="score-label" id="scoreVerdict">APROBADO</span>
+        </div>
+        <h2 id="resultTitle" style="margin-bottom: 12px; color: var(--primary);">Resultado del Diagnóstico de Seguridad</h2>
+        
+        <div class="worker-badge" id="workerSummary"></div>
+
+        <div class="section-title" style="margin-top: 24px; text-align: left;">
+          <span>📊</span> Desglose por Reactivo y Punto Normativo Evaluado
+        </div>
+        <table class="breakdown-table">
+          <thead>
+            <tr>
+              <th style="width: 5%;">#</th>
+              <th style="width: 25%;">Punto del Protocolo</th>
+              <th style="width: 40%;">Pregunta Evaluada</th>
+              <th style="width: 20%;">Respuesta del Colaborador</th>
+              <th style="width: 10%;">Estatus</th>
+            </tr>
+          </thead>
+          <tbody id="breakdownBody"></tbody>
+        </table>
+
+        <div style="display: flex; gap: 14px; margin-top: 24px; flex-wrap: wrap;" class="no-print">
+          <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir Evidencia PDF</button>
+          <button class="btn btn-success" onclick="switchTab('dashboard')">📈 Ver en Tablero Estadístico</button>
+          <button class="btn" onclick="resetApp()">🔄 Nueva Evaluación</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- VISTA 2: TABLERO ESTADÍSTICO Y GRÁFICOS -->
+  <div id="view-dashboard" style="display: none;">
+    <!-- Tarjetas KPI -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-title">Evaluaciones Totales</span>
+        <span class="kpi-value" id="kpiTotal">0</span>
+        <span class="kpi-sub">Evaluaciones registradas en base local</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-title">Promedio General</span>
+        <span class="kpi-value" id="kpiAvgScore">0%</span>
+        <span class="kpi-sub">Nivel de conocimiento global</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-title">Tasa de Acreditación</span>
+        <span class="kpi-value" id="kpiPassRate">0%</span>
+        <span class="kpi-sub" id="kpiPassDetail">0 aprobados de 0</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-title">Protocolo Crítico</span>
+        <span class="kpi-value" id="kpiWeakProtocol" style="font-size: 1.25rem;">N/A</span>
+        <span class="kpi-sub" id="kpiWeakScore">Menor promedio de conocimiento</span>
+      </div>
+    </div>
+
+    <!-- Filtros del Dashboard -->
+    <div class="card" style="padding: 16px 20px; margin-bottom: 20px;">
+      <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+        <strong style="color: var(--primary); font-size: 0.9rem;">Filtros de Análisis:</strong>
+        <div style="flex: 1; min-width: 200px;">
+          <select id="filterProtocol" onchange="renderDashboardCharts()" style="width: 100%; padding: 8px 12px;">
+            <option value="ALL">Todos los Protocolos</option>
+          </select>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+          <select id="filterArea" onchange="renderDashboardCharts()" style="width: 100%; padding: 8px 12px;">
+            <option value="ALL">Todas las Áreas / Naves</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary" style="padding: 8px 14px; font-size: 0.85rem;" onclick="resetFilters()">Limpiar Filtros</button>
+      </div>
+    </div>
+
+    <!-- Gráficos Estadísticos -->
+    <div class="charts-grid">
+      <!-- Gráfico 1: Aprobados vs No Acreditados -->
+      <div class="chart-box">
+        <h3><span>🎯</span> Competencia Global (Aprobados vs No Acreditados)</h3>
+        <div class="chart-container">
+          <canvas id="chartPassFail"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico 2: Desempeño por Área / Nave -->
+      <div class="chart-box">
+        <h3><span>🏭</span> Promedio de Conocimiento por Área / Nave (%)</h3>
+        <div class="chart-container">
+          <canvas id="chartByArea"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico 3: Conocimiento por Protocolo de Seguridad -->
+      <div class="chart-box">
+        <h3><span>📘</span> Conocimiento por Protocolo (Identificador de Brechas)</h3>
+        <div class="chart-container">
+          <canvas id="chartByProtocol"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico 4: Desempeño por Puesto de Trabajo -->
+      <div class="chart-box">
+        <h3><span>👷</span> Nivel de Conocimiento por Puesto de Trabajo (%)</h3>
+        <div class="chart-container">
+          <canvas id="chartByRole"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA 3: HISTORIAL Y GESTIÓN DE BASE DE DATOS -->
+  <div id="view-history" style="display: none;">
+    <section class="card">
+      <div class="section-title">
+        <span>📁</span> Base de Datos de Evaluaciones Realizadas
+      </div>
+
+      <div class="history-controls">
+        <input type="text" id="historySearch" class="search-box" placeholder="🔍 Buscar por nombre, nómina o área..." onkeyup="filterHistoryTable()">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn-success" style="padding: 9px 16px; font-size: 0.9rem;" onclick="exportToCSV()">📊 Exportar a Excel (.CSV)</button>
+          <button class="btn btn-secondary" style="padding: 9px 14px; font-size: 0.9rem;" onclick="exportBackupJSON()">💾 Respaldo JSON</button>
+          <button class="btn btn-secondary" style="padding: 9px 14px; font-size: 0.9rem;" onclick="importBackupJSON()">📂 Importar JSON</button>
+          <button class="btn btn-danger" style="padding: 9px 14px; font-size: 0.9rem;" onclick="clearAllData()">🗑️ Limpiar Todo</button>
+        </div>
+      </div>
+
+      <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="handleFileImport(event)">
+
+      <div class="history-table-wrapper">
+        <table class="history-table" id="historyTable">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Colaborador</th>
+              <th>Nómina</th>
+              <th>Área / Nave</th>
+              <th>Puesto</th>
+              <th>Protocolo</th>
+              <th>Calificación</th>
+              <th>Estatus</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <!-- Registros dinámicos -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+  // BANCO CENTRAL DE PREGUNTAS (303 REACTIVOS / 10 PROTOCOLOS)
+  const QUESTION_BANK = {"gruas": {"name": "Uso Seguro de Grúas y/o Pórticos (53 Puntos)", "questions": [{"p": "Punto 1: Personal autorizado", "q": "¿Quiénes son los únicos autorizados para operar equipos de izaje (grúa viajera, pórtico, semipórtico y bandera)?", "o": ["Solo personal entrenado en los cursos internos (Operador de grúa y Certificación); los supervisores no pueden instruir personal sin esta capacitación", "Cualquier supervisor o líder de línea con experiencia práctica", "Cualquier operador de producción que requiera mover una pieza con urgencia", "Personal con más de 1 año en la empresa sin necesidad de curso"], "c": 0}, {"p": "Punto 2: Check List por posición", "q": "Si un pórtico o grúa es utilizado en tres posiciones diferentes de trabajo, ¿cómo debe llenarse el Check List diario?", "o": ["Cada una de las tres posiciones deberá realizar y llenar su propio Check List", "Solo la primera posición del primer turno llena el Check List", "El supervisor llena un único formato general por semana", "Basta con una revisión visual sin llenar formato"], "c": 0}, {"p": "Punto 3: Pruebas sin carga", "q": "¿Qué pruebas operativas obligatorias deben realizarse antes del arranque sin carga?", "o": ["Pruebas de operación en los 6 movimientos y prueba del paro de emergencia", "Prueba de carga máxima inmediata", "Prueba de avance rápido longitudinal únicamente", "Prueba de resistencia del cable con carga suspendida"], "c": 0}, {"p": "Punto 4: Bloqueo de botonera", "q": "¿Cómo se debe asegurar la botonera de la grúa cuando no se esté utilizando?", "o": ["Bloqueando el equipo activando el botón de paro de emergencia", "Dejándola colgada a ras de piso con el switch encendido", "Amarrándola a una columna con cinta de aislar", "Apagando el interruptor general de toda la nave"], "c": 0}, {"p": "Punto 5: Verificación de interferencias", "q": "¿Qué se debe asegurar respecto a la trayectoria de pórticos y ganchos de grúas viajeras?", "o": ["Asegurar que no existan interferencias ni obstáculos para los movimientos de cargas y equipos", "Acelerar el movimiento si hay obstáculos para librarlos por balanceo", "Hacer sonar la sirena únicamente sin importar las interferencias", "Mover la carga a máxima altura sin revisar el claro del puente"], "c": 0}, {"p": "Punto 6: Condiciones de elementos de izaje", "q": "¿Cuáles elementos de izaje deben inspeccionarse rigurosamente antes de su uso?", "o": ["Cadenas, eslingas sintéticas, igualadores, levantadores magnéticos, ganchos y grilletes", "Solo las cadenas de acero de alta resistencia", "Únicamente el gancho principal de la grúa", "Solo los dispositivos magnéticos"], "c": 0}, {"p": "Punto 7: Elementos auxiliares", "q": "¿Cuáles son los elementos auxiliares que se deben asegurar en una maniobra de izaje?", "o": ["Venteos, rosaderas, alarmas auditivas (silbato/sirena), luminosas (torreta) y personal de maniobra (ayudante/rigger)", "Únicamente el uso de silbato individual", "Solo el chaleco reflejante del operador", "Cintas amarillas de precaución exclusivamente"], "c": 0}, {"p": "Punto 8: Prueba con carga y amarre", "q": "¿Qué debe comprobarse en la prueba inicial con carga en cada maniobra?", "o": ["Centro de carga y amarres adecuados (ángulo, contacto con filos/rosaderas, orientación de ganchos y aparejos cerrados)", "La velocidad máxima a la que desciende la carga", "Si la grúa puede levantar el doble de su capacidad", "Que el cable no rechine al subir"], "c": 0}, {"p": "Punto 9: Capacidad de carga nominal", "q": "¿Qué conocimiento técnico previo debe tener el operador antes de realizar el izaje?", "o": ["Conocer la capacidad de carga nominal de la grúa y de los aparejos a utilizar", "Únicamente las dimensiones de la pieza a mover", "Solo el número de serie de la grúa", "El voltaje de alimentación del motor"], "c": 0}, {"p": "Punto 10: Peso de la carga", "q": "Respecto a la carga a manipular, ¿qué debe saber o determinar el operador?", "o": ["Conocer el peso exacto de la carga a levantar o calcular su peso previamente", "Estimar el peso al tanteo según el esfuerzo del motor", "Suponer que pesa menos que la última pieza movida", "Ignorar el peso si la grúa tiene cable grueso"], "c": 0}, {"p": "Punto 11: Límite de capacidad", "q": "¿Cuál es la regla fundamental respecto a la capacidad de grúa y aparejos?", "o": ["Nunca exceder la capacidad de carga de la grúa ni de los aparejos", "Se puede exceder hasta un 10% en distancias cortas", "Se permite sobrecargar si el izaje es a menos de 30 cm", "La capacidad solo aplica para la grúa, no para los aparejos"], "c": 0}, {"p": "Punto 12: Cierre de aparejos", "q": "¿Qué se debe revisar en los aparejos inmediatamente antes de realizar el izaje?", "o": ["Revisar que los aparejos y pestillos estén completamente cerrados y asegurados", "Que los pernos de los grilletes estén flojos para dar juego", "Que las eslingas queden dobladas en las esquinas vivas", "Que las cadenas no tengan lubricación"], "c": 0}, {"p": "Punto 13: Manos y pies en el amarre", "q": "¿Dónde NO deben colocarse las manos ni los pies durante el ajuste del amarre?", "o": ["En la zona de apriete o ajuste del amarre", "En la soga guía o venteo", "En la botonera de control", "En el suelo fuera del radio de maniobra"], "c": 0}, {"p": "Punto 14: Levantamiento inicial y balance", "q": "¿A qué altura debe levantarse la carga inicialmente para comprobar su balance?", "o": ["Levantar la carga de 10 a 15 cm y, una vez comprobado el balance, realizar el movimiento completo", "Levantarla a 1.5 metros de inmediato", "Elevarla al tope del gancho directamente", "No es necesario pausar, se debe levantar de un solo jalón"], "c": 0}, {"p": "Punto 15: Distribución en ramales", "q": "¿Cómo debe distribuirse el peso de la carga en los elementos de izaje?", "o": ["Distribuir la carga por igual en todos los ramales de la eslinga, cadena o estrobo", "Concentrar todo el peso en el ramal más corto", "Dejar un ramal flojo como respaldo de seguridad", "Cargar únicamente sobre los extremos de los ganchos"], "c": 0}, {"p": "Punto 16: Tiempo de suspensión", "q": "¿Cuánto tiempo debe permanecer una carga suspendida en el aire?", "o": ["Solo el tiempo estrictamente necesario para la maniobra", "Todo el turno para no perder tiempo volviendo a amarrar", "Durante la hora de comida si el área está sola", "Indefinidamente si el freno mecánico está puesto"], "c": 0}, {"p": "Punto 17: Paros repentinos y péndulo", "q": "¿Qué efectos dinámicos deben evitarse durante el desplazamiento de la grúa?", "o": ["Evitar los paros repentinos y el efecto péndulo o balanceo de la carga", "Acelerar bruscamente para vencer la inercia", "Frenar en seco para acomodar la carga en su posición", "Balancear la carga para alcanzar zonas fuera de la vertical"], "c": 0}, {"p": "Punto 18: Tiro diagonal", "q": "¿Cuál es la regla sobre levantar o bajar cargas con el gancho en diagonal?", "o": ["No levantar ni bajar cargas con el gancho en diagonal (tiro sesgado prohibido)", "Se permite si la pieza es demasiado pesada para centrarla", "Se autoriza jalando simultáneamente con el puente", "Se permite hasta un ángulo de 45 grados"], "c": 0}, {"p": "Punto 19: Velocidad de descenso", "q": "¿A qué velocidad deben depositarse las cargas al asentarlas?", "o": ["Depositar las cargas a velocidad baja y controlada", "Dejarlas caer en descenso libre rápido", "A máxima velocidad para evitar calentamiento del motor", "Frenando a 5 cm del suelo en seco"], "c": 0}, {"p": "Punto 20: Colocación de polines o soportes", "q": "¿Qué implementos deben usarse para colocar polines, soportes o trucks debajo de las cargas?", "o": ["Utilizar extensiones auxiliares para no meter manos ni brazos bajo la carga", "Meter las manos rápidamente mientras la carga desciende", "Acomodarlos empujándolos con los pies directamente", "Sostener los polines con ambas manos hasta que asiente la carga"], "c": 0}, {"p": "Punto 21: Coordinación con auxiliares", "q": "¿Cómo debe operar el operador respecto al personal de maniobra auxiliar?", "o": ["Coordinar en todo momento los movimientos con sus auxiliares (maniobristas/enganchadores)", "Operar por intuición sin mirar al maniobrista", "Ignorar las señas del auxiliar y guiarse solo por la vista", "Delegar el control de la botonera al personal en piso"], "c": 0}, {"p": "Punto 22: Principio ante la duda", "q": "¿Cuál es la regla de oro ante cualquier duda durante una maniobra de izaje?", "o": ["Ante la duda, PARAR el movimiento y asegurar el siguiente paso", "Continuar la maniobra para ver si se acomoda sola", "Acelerar para terminar la maniobra lo más rápido posible", "Preguntar a los compañeros sin detener el movimiento"], "c": 0}, {"p": "Punto 23: Almacenamiento de aparejos", "q": "¿Cómo deben almacenarse los elementos de izaje al liberarlos?", "o": ["Colocarlos en sus racks asignados verificando que no se enganchen con otros objetos", "Dejarlos en el suelo sobre el pasillo peatonal", "Colgados de la estructura de la grúa de forma improvisada", "Amontonados dentro del carro o ensamble"], "c": 0}, {"p": "Punto 24: Trabajos eléctricos con carga suspendida", "q": "¿Qué trabajos están prohibidos mientras la carga se encuentra enganchada a la grúa?", "o": ["Asegurar que no se realicen trabajos con electricidad (soldadura, pruebas eléctricas)", "Labores de inspección visual de calidad", "Verificación de dimensiones con flexómetro", "Toma de fotografías de control"], "c": 0}, {"p": "Punto 25: Elementos inmovilizadores", "q": "Antes de izar una pieza, ¿qué se debe verificar respecto a mecanismos de sujeción?", "o": ["Verificar que no haya elementos que inmovilicen la carga por olvido u obstrucción (prensas, pernos, seguros)", "Que las prensas estén apretadas para sostener la estructura", "Que los cables de tierra estén conectados al ensamble", "Que la pieza esté soldada a la mesa de trabajo"], "c": 0}, {"p": "Punto 26: Tránsito sobre personal y oxicorte", "q": "¿Por encima de qué elementos o personas está ESTRICTAMENTE PROHIBIDO pasar cargas suspendidas?", "o": ["Por encima de compañeros de trabajo ni sobre equipos de oxiacetileno", "Solo sobre áreas de almacén", "Por encima de vías de tren vacías", "Sobre áreas señalizadas con pintura amarilla"], "c": 0}, {"p": "Punto 27: Permanencia bajo carga", "q": "¿Cuál es la prohibición absoluta respecto a la ubicación de las personas bajo la carga?", "o": ["No pasar ni permanecer jamás por debajo de una carga suspendida", "Se permite permanecer si se usa casco de seguridad", "Se permite cruzar rápido si el operador está atento", "Solo se prohíbe si la carga pesa más de 10 toneladas"], "c": 0}, {"p": "Punto 28: Visibilidad de la grúa y ruta libre", "q": "¿Qué debe mantener siempre a la vista el operador durante la operación?", "o": ["Nunca perder de vista la grúa, su gancho, dispositivo de izaje o botonera, asegurando la 'ruta libre'", "Mirar únicamente hacia el suelo para no tropezar", "Atender la pantalla del teléfono celular", "Mirar fijamente al supervisor de área"], "c": 0}, {"p": "Punto 29: Manejo de distractores", "q": "Si se presenta un distractor o es necesario atender algo ajeno a la maniobra, ¿qué debe hacerse?", "o": ["Ignorar distractores; si es necesario atender algo diferente, detener la operación por completo", "Atender la conversación mientras se mantiene presionado el botón", "Mover la grúa con una mano y contestar con la otra", "Pedirle a un compañero que sostenga el botón de avance"], "c": 0}, {"p": "Punto 30: Uso de escaleras en maniobras de enganche", "q": "Al utilizar escaleras para enganchar la carga, ¿qué medida de seguridad es obligatoria?", "o": ["Verificar que tenga puntos de anclaje o que una segunda persona la sujete firmemente en la base", "Subir con una sola mano y la otra sosteniendo el gancho", "Colocar la escalera sobre polines sueltos para ganar altura", "Apoyar la escalera directamente sobre la carga inestable"], "c": 0}, {"p": "Punto 31: Arrastre con polipasto o puente", "q": "¿Está permitido jalar cargas con el polipasto o puente de la grúa de forma inclinada?", "o": ["No, está prohibido jalar la carga; el cable y el gancho deben estar siempre perfectamente alineados en la vertical", "Sí, siempre que la carga ruede sobre polines", "Sí, si el ángulo es menor a 30 grados", "Se autoriza únicamente si el montacargas no está disponible"], "c": 0}, {"p": "Punto 32: Altura de izaje y simultaneidad de botones", "q": "¿A qué altura debe elevarse la carga durante su traslado y qué regla aplica a la botonera?", "o": ["Solo lo suficiente para librar la obstrucción más alta de la ruta y NUNCA accionar dos botones simultáneamente", "A la altura máxima del puente y accionando puente y carro al mismo tiempo", "A ras de piso rozando las tarimas", "A la altura del pecho accionando tres movimientos a la vez"], "c": 0}, {"p": "Punto 33: Cargas conectadas sin uso", "q": "¿Qué elementos se consideran 'carga' y nunca deben dejarse suspendidos cuando la grúa no esté en uso?", "o": ["Cualquier cosa en el gancho, incluidos igualadores, balancines o cualquier dispositivo de izaje", "Únicamente las piezas metálicas terminadas", "Solo las cargas que pesen más de 500 kg", "Ninguno, los balancines pueden quedarse colgados siempre"], "c": 0}, {"p": "Punto 34: Carga suspendida desatendida y emergencias", "q": "Si por una emergencia absoluta una carga debe quedar suspendida, ¿qué protocolo debe cumplirse?", "o": ["Asegurar que el área esté claramente delimitada con señalización y bloqueada en sus cuatro lados para evitar acceso no autorizado", "Dejar a un compañero vigilando sin señalización", "Colocar un cono debajo de la pieza", "Apagar las luces de la nave para que nadie pase"], "c": 0}, {"p": "Punto 35: Manipulación directa con las manos", "q": "¿Cuál es la regla de seguridad respecto al contacto directo de las manos con cargas suspendidas?", "o": ["Nunca manipules una carga suspendida directamente con las manos; usa venteos o herramientas auxiliares", "Se permite empujarla con las palmas de las manos abiertas", "Se permite manipularla directamente si usas guantes de carnaza", "Solo se permite si la carga está a menos de 50 cm del suelo"], "c": 0}, {"p": "Punto 36: Comunicación en cambio de turno", "q": "¿Qué debe comunicar el operador a la persona que tomará el equipo en el cambio de turno?", "o": ["Notificar sobre cualquier pendiente de seguridad o mantenimiento sin corregir", "Únicamente la cantidad de piezas producidas", "La hora exacta en que comenzó el turno", "No es necesario notificar nada si se llenó el check list"], "c": 0}, {"p": "Punto 37: Movimiento mientras hay personas en contacto", "q": "¿Puede el operador mover la grúa mientras se realiza el acomodo de eslingas?", "o": ["No, no debe hacer movimientos mientras personas tengan contacto con la carga o se acomoden elementos de izaje", "Sí, si el movimiento es muy lento y con aviso previo", "Sí, para ayudar a tensar la eslinga mientras el compañero la sujeta", "Solo si el supervisor lo autoriza de palabra"], "c": 0}, {"p": "Punto 38: Equipo bloqueado con candado y tarjeta", "q": "Cuando un equipo de izaje tiene colocadas tarjetas y candados de bloqueo, ¿quién puede retirarlos?", "o": ["Está prohibido su uso y ÚNICAMENTE el personal que colocó las tarjetas y candados puede retirarlos", "Cualquier operador que necesite usar la grúa con urgencia", "El supervisor de producción cortando el candado", "El operador del siguiente turno sin consultar"], "c": 0}, {"p": "Punto 39: Falla de energía eléctrica durante la maniobra", "q": "Si ocurre un corte de energía eléctrica durante la operación de la grúa, ¿qué acción debe tomar el operador?", "o": ["Colocar inmediatamente los controles en posición de apagado / neutro", "Dejar todos los botones accionados para cuando regrese la luz", "Intentar mover la carga manualmente jalando el cable", "Abandonar el área sin asegurar el perímetro"], "c": 0}, {"p": "Punto 40: Manipulación de tableros eléctricos", "q": "¿Qué restricción existe sobre los tableros eléctricos y parámetros de los equipos de izaje?", "o": ["Está prohibido abrir tableros eléctricos y/o manipular parámetros de los equipos", "El operador puede cambiar los fusibles si sabe de electricidad", "Se permite ajustar el variador de frecuencia para aumentar la velocidad", "Se pueden puentear los relevadores de sobrecarga"], "c": 0}, {"p": "Punto 41: Resguardo de la botonera", "q": "¿Dónde y cómo debe resguardarse la botonera de control de la grúa?", "o": ["En un lugar seguro, evitando el contacto con intemperie, materiales, agua o herramientas", "Dejada en el suelo en medio del pasillo de tránsito", "Colgada del propio gancho de carga", "Amarrada a los cables de alimentación"], "c": 0}, {"p": "Punto 42: Operación de múltiples grúas", "q": "¿Puede un solo operador maniobrar dos grúas al mismo tiempo?", "o": ["Nunca operes 2 grúas al mismo tiempo; pide ayuda y espera el apoyo solicitado", "Sí, si cuenta con dos controles remotos independientes", "Sí, para acelerar el ensamble de carros largos", "Se permite siempre que no haya supervisores presentes"], "c": 0}, {"p": "Punto 43: Atención a señales y parada de emergencia", "q": "Respecto a las órdenes de parada de emergencia durante una maniobra, ¿qué debe hacer el operador?", "o": ["Debe atender una orden de parada en todo momento, SIN IMPORTAR quién la dé", "Atenderla únicamente si la da el supervisor de seguridad", "Ignorarla si viene de un compañero de nuevo ingreso", "Esperar a terminar el movimiento antes de detenerse"], "c": 0}, {"p": "Punto 44: Operar grúa y ventear simultáneamente", "q": "¿Por qué está estrictamente prohibido operar la grúa y al mismo tiempo jalar la soga de venteo?", "o": ["Porque se corre el grave peligro de perder el control de la carga y del equipo", "Porque la soga se puede desgastar más rápido", "Porque no se alcanza a ver el letrero de capacidad", "No está prohibido, es una práctica recomendada"], "c": 0}, {"p": "Punto 45: Sujeción de cadenas para guiar carga", "q": "¿Está permitido sujetar directamente las cadenas de izaje para orientar o guiar una carga?", "o": ["Prohibido sujetar las cadenas para guiar la carga; se debe hacer uso de venteos o taglines", "Sí, siempre que se utilicen guantes de carnaza gruesos", "Sí, si la cadena está completamente tensada", "Solo en maniobras a menos de 1 metro de altura"], "c": 0}, {"p": "Punto 46: Distancia segura durante el izaje", "q": "¿Qué posición física debe mantener el operador y el personal respecto a la carga suspendida?", "o": ["Mantener una distancia segura de la carga durante todo el izaje", "Permanecer pegado a la pieza para evitar que gire", "Colocarse debajo para verificar que no pegue en el piso", "Apoyar la espalda en la carga para dirigirla"], "c": 0}, {"p": "Punto 47: Zona segura de gancho en grúas viajeras", "q": "¿Dónde debe colocarse el gancho de la grúa viajera al concluir su uso?", "o": ["En la 'zona segura de gancho', ubicada en la parte superior y en medio del puente de la grúa", "En el suelo del pasillo principal", "Colgando a la altura de la cabeza de los trabajadores", "Enganchado a una columna estructural"], "c": 0}, {"p": "Punto 48: Finalización de actividad en grúa pórtico", "q": "Al terminar actividades con una grúa pórtico, ¿cómo debe asegurarse la botonera y su cable?", "o": ["Colocar la botonera en su alojamiento y atrapar el excedente de cable en el gancho de la estructura", "Dejar la botonera tirada en el suelo sobre las vías", "Enrollar el cable alrededor de la rueda motriz", "Desconectar la botonera y llevársela a su casillero"], "c": 0}, {"p": "Punto 49: Conexión de gancho con argollas o conectores", "q": "Al conectar el gancho con argollas o conectores, ¿qué comprobación visual debe realizarse?", "o": ["Asegurarse visualmente de que la argolla aloje por completo en la base del gancho y libre el seguro (pestillo)", "Que la argolla quede apoyada en la punta del gancho", "Que el seguro quede trabado y abierto", "Que la argolla entre a la fuerza aunque no cierre el pestillo"], "c": 0}, {"p": "Punto 50: Altura de gancho sin carga en tránsito", "q": "Cuando no se utilice la grúa para mover ensambles o placas, ¿a qué altura debe elevarse el gancho respecto al piso?", "o": ["Subir el gancho a 2 metros con respecto al piso del área de trabajo", "A 50 cm del piso", "A 1 metro del piso", "Dejarlo apoyado en el piso"], "c": 0}, {"p": "Punto 51: Retiro de elementos de izaje al cierre de turno", "q": "¿Qué debe hacerse con eslingas y cuerdas de venteo al término de la operación y cierre de turnos?", "o": ["Retirar todas las eslingas del gancho y devolver los dispositivos de venteo a sus racks de almacenamiento", "Dejar todas las eslingas colgadas del gancho a la intemperie", "Amarrar las sogas de venteo a las columnas de la nave", "Guardar las eslingas sucias debajo de los carros"], "c": 0}, {"p": "Punto 52: Operación de la botonera a dos manos", "q": "¿Cómo debe sostenerse y manipularse la botonera (alámbrica o inalámbrica) durante el movimiento?", "o": ["Se deberá de operar utilizando ambas manos para un control firme y seguro", "Con una sola mano mientras con la otra se toma café", "Sujetándola con el codo contra el cuerpo", "Con el pie cuando esté apoyada en el suelo"], "c": 0}, {"p": "Punto 53: Dirección de desplazamiento del operador", "q": "¿Cuál es la recomendación ergonómica y de seguridad al trasladar la grúa o carga suspendida?", "o": ["Evitar caminar hacia atrás; siempre desplazarse hacia adelante teniendo control visual del entorno", "Caminar siempre de espaldas para no perder de vista la carga", "Moverse lateralmente a paso veloz", "Cerrar los ojos para evitar el destello del semáforo"], "c": 0}]}, "manos": {"name": "Cuidado de Manos (34 Puntos)", "questions": [{"p": "Punto 1: Alambre y rodillos", "q": "¿Cómo se debe cortar el alambre de soldadura y qué prohibición aplica a los rodillos del alimentador?", "o": ["Usar pinza para cortar alambre de soldadura y NUNCA meter los dedos en el sistema de rodillos de los alimentadores", "Cortar con los dientes y guiar el alambre con los dedos entre rodillos", "Doblar el alambre con las manos desnudas hasta que se rompa", "Usar el esmeril para degollar el alambre"], "c": 0}, {"p": "Punto 2: Agarre de grapas y mordazas", "q": "¿De dónde se deben tomar grapas, mordazas, bazucas o Pac-Man?", "o": ["De la agarradera únicamente y fuera de las zonas de apriete o contacto con otros dispositivos o materiales", "Directamente de la zona de mordaza para asegurar mayor fuerza", "De los tornillos roscados en movimiento", "De cualquier parte sin importar si pellizca"], "c": 0}, {"p": "Punto 3: Operación de esmeril a dos manos", "q": "¿Cuál es la regla de sujeción y guardas para operar el esmeril angular?", "o": ["Tomar el esmeril con ambas manos durante la operación y SOLO utilizarlo con guarda de protección colocada", "Sujetarlo con una mano para tener mayor alcance", "Retirar la guarda protectora para usar discos más grandes", "Operarlo con guantes sueltos de tela"], "c": 0}, {"p": "Punto 4: Esmerilado de piezas sueltas", "q": "¿Está permitido sostener una pieza pequeña con una mano mientras se esmerila con la otra?", "o": ["No, está prohibido esmerilar sosteniendo la pieza con una mano y con la otra el esmeril/chinano", "Sí, siempre que se use guante de carnaza grueso", "Sí, si la rebaba es muy pequeña", "Se permite apoyando la pieza en la pierna"], "c": 0}, {"p": "Punto 5: Detención del disco abrasivo", "q": "¿Cómo debe procederse al terminar de esmerilar antes de soltar la herramienta?", "o": ["No soltar el esmeril hasta que el abrasivo (disco/carda) se detenga por completo; NUNCA detenerlo con el pie u otro material", "Frenar el disco contra la suela de la bota de seguridad", "Presionar el disco contra una viga de acero para pararlo rápido", "Soltarlo inmediatamente en el piso mientras sigue girando"], "c": 0}, {"p": "Punto 6: Sujeción de piezas pequeñas para esmerilado", "q": "¿Cómo se deben fijar las piezas pequeñas que requieren ser esmeriladas?", "o": ["Sujetarlas firmemente con prensa, tornillo de banco o pinzas de presión", "Sostenerlas firmemente con las dos manos", "Pisar la pieza con el tacón de la bota de casquillo", "Pedirle a un compañero que la detenga con la mano"], "c": 0}, {"p": "Punto 7: Agarre y guarda del cincel", "q": "¿Qué especificaciones de seguridad debe tener el cincel antes de utilizarlo?", "o": ["Agarrar el cincel del Grip y no utilizarlo si no cuenta con su guarda de protección para la mano", "Sujetarlo cerca de la cabeza de impacto con la mano desnuda", "Usarlo sin guarda para tener mejor visibilidad del filo", "Envolver el cuerpo del cincel con cinta canela"], "c": 0}, {"p": "Punto 8: Uso debido del cincel", "q": "¿Para qué tareas está autorizado el uso del cincel manual?", "o": ["Solo para golpear o limpiar rebaba; NUNCA usarlo como palanca, calza o cuña", "Como palanca para nivelar placas de carro", "Como cuña permanente entre dos ensambles", "Como barra de impacto para destrabar puertas"], "c": 0}, {"p": "Punto 9: Manos bajo placas o cargas", "q": "¿Cuál es la prohibición sobre la posición de las manos bajo placas metálicas o cargas suspendidas?", "o": ["No colocar jamás las manos debajo de placas metálicas ni de cargas suspendidas", "Se permite colocar las manos si la carga no supera 50 kg", "Se permite para calzar con madera rápida", "Solo se prohíbe si la grúa está en movimiento rápido"], "c": 0}, {"p": "Punto 10: Manos entre materiales y visibilidad", "q": "¿Qué regla aplica sobre meter dedos entre materiales según el programa de seguridad?", "o": ["Nunca meter dedos o manos entre materiales y no perder de vista las manos durante las actividades en ningún momento", "Meter los dedos para comprobar si el ensamble asentó al ras", "Mirar al compañero mientras se empuja el material a ciegas", "Usar los dedos como tope guía"], "c": 0}, {"p": "Punto 11: Herramientas de extensión", "q": "¿Qué implementos de extensión deben usarse para mover o acomodar materiales y evitar la línea de fuego?", "o": ["Imanes, ganchos, barretas y garras para mover materiales", "Los dedos de las manos directamente con fuerza", "Trozos de madera cortados a mano", "Empujar las piezas con la punta del pie"], "c": 0}, {"p": "Punto 12: Uso continuo de guantes", "q": "¿Cuándo es obligatorio el uso de guantes protectores de mano?", "o": ["En todo momento al manipular material de ensamble y herramientas (navajas, pinzas, desarmadores, hidráulicos, etc.)", "Únicamente en el turno nocturno", "Solo cuando el supervisor esté presente en la línea", "Solo si la pieza metálica está mojada"], "c": 0}, {"p": "Punto 13: Reposo de la antorcha", "q": "¿Dónde debe colocarse la antorcha al terminar de soldar?", "o": ["Colocar la antorcha en su porta antorcha designado", "Dejarla colgada del gatillo en el cable de la grúa", "Tirarla al piso en la zona de paso", "Apoyarla sobre el tanque de gas"], "c": 0}, {"p": "Punto 14: Tipo de guante para soldadura y punteo", "q": "¿Qué tipo de guante está estrictamente prohibido usar durante trabajos de soldadura, incluyendo punteo?", "o": ["Está prohibido soldar con guante corto (incluyendo la operación de punteo); se requiere guante largo de carnaza", "Guante largo de carnaza con refuerzo", "Guante de soldador certificado", "Guante de media caña de carnaza para soldador"], "c": 0}, {"p": "Punto 15: Almacenamiento y recarga de materiales", "q": "¿Por qué no se debe recargar material o herramienta en carritos logísticos o columnas?", "o": ["Porque dejan el material inestable; debe posicionarse adecuadamente sin riesgo de caída ni atrapamiento", "Porque se ensucia la pintura de las columnas", "Porque los carritos se desgastan de las ruedas", "Porque las herramientas se pierden con facilidad"], "c": 0}, {"p": "Punto 16: Tensión de accesorios de izaje", "q": "¿Qué acción preventiva obligatoria debe realizarse al tensar cadenas, grapas, eslingas o ganchos?", "o": ["Retirar completamente las manos al momento de aplicar tensión a los elementos de izaje", "Apretar el gancho con la mano mientras sube la grúa", "Sostener la eslinga para que no resbale al tensar", "Guiar el cable con las dos manos sobre el tambor"], "c": 0}, {"p": "Punto 17: Cambio de accesorios de potencia", "q": "¿Bajo qué condiciones debe cambiarse un disco, carda, broca o cartucho en una herramienta de poder?", "o": ["Con el equipo completamente desconectado/desenergizado y utilizando las llaves y herramientas asignadas", "Con la herramienta conectada pero apagada del interruptor", "Golpeando la tuerca del esmeril con un cincel y martillo", "Frenando el eje con un desarmador mientras el motor zumba"], "c": 0}, {"p": "Punto 18: Brazos abatibles", "q": "¿Cómo se deben manipular los brazos abatibles en los dispositivos de ensamble?", "o": ["Moverlos de la agarradera, evitar aventarlos y NUNCA colocar las manos en el alojamiento de los abatibles", "Empujarlos metiendo los dedos en el mecanismo de bisagra", "Aventarlos con fuerza para que enganchen solos", "Sujetarlos por la zona de pernos móviles"], "c": 0}, {"p": "Punto 19: Manipulación de bombas y conexiones hidráulicas", "q": "¿Qué está prohibido al transportar o mover cilindros, bombas y mangueras hidráulicas o neumáticas?", "o": ["No sujetar, sostener o cargar de las mangueras o conexiones, ni arrastrarlos para evitar roturas o desprendimientos", "Transportarlos en un carro de herramientas", "Cargarlos tomándolos del cuerpo del cilindro", "Purgar la presión antes de almacenarlos"], "c": 0}, {"p": "Punto 20: Mangueras hidráulicas bajo presión", "q": "¿Qué riesgo existe si se sostienen las mangueras y conexiones mientras un sistema hidráulico está operando?", "o": ["Las conexiones se pueden zafar violentamente y golpear o inyectar fluido a alta presión", "La manguera se enfría y pierde adherencia", "Se reduce el caudal de la bomba hidráulica", "No existe riesgo si se usan guantes de algodón"], "c": 0}, {"p": "Punto 21: Trayectoria de golpeo con martillo o marro", "q": "¿Cuál es la recomendación al usar herramientas de impacto con mango (martillo, marro, maceta, barreta)?", "o": ["No colocar las manos en la trayectoria del golpe ni del movimiento y asegurar que la mano sujete firmemente el mango", "Poner la mano izquierda cerca del punto de impacto para sostener el clavo o perno", "Sujetar el mango cerca de la cabeza para golpear más fuerte", "Usar el marro con las manos engrasadas"], "c": 0}, {"p": "Punto 22: Ajuste de ensambles y partes de sujeción", "q": "¿De qué parte deben sostenerse los materiales o ensambles al realizar acomodos o ajustes manuales?", "o": ["Sostener de la parte superior, NUNCA de la parte inferior ya que podrían comprimirse o amputarse los dedos", "De la base inferior donde asienta la pieza", "Entre las dos caras metálicas que van a chocar", "De los orificios donde entrarán los pernos"], "c": 0}, {"p": "Punto 23: Uso de números de golpe", "q": "¿Cómo deben sujetarse los números o letras de golpe para marcar material?", "o": ["Utilizar el dispositivo específico de sujeción o unas pinzas; nunca sostenerlos directamente con las manos", "Sujetarlos firmemente con las yemas de los dedos pulgar e índice", "Pegarlos con cinta y sostenerlos con la palma", "Sostenerlos con la mano enguantada directamente debajo del marro"], "c": 0}, {"p": "Punto 24: Trabajo con equipo energizado", "q": "Al trabajar cerca de equipos energizados, ¿qué se debe revisar en los guantes y qué apoyo solicitar?", "o": ["Verificar que los guantes estén en óptimo estado y completamente secos, y solicitar apoyo de personal de mantenimiento", "Usar guantes mojados para enfriar el arco", "Trabajar sin guantes para sentir si hay corriente", "Colocar cinta adhesiva común sobre el guante roto"], "c": 0}, {"p": "Punto 25: Despresurización previa a la intervención", "q": "¿Qué se debe hacer antes de manipular mangueras, bombas o cilindros neumáticos e hidráulicos?", "o": ["Despresurizar el equipo y asegurarse de que se encuentren totalmente sin presión y bloqueados", "Aflojar la tuerca poco a poco para que escape el chorro de aceite", "Golpear el cilindro para liberar la presión residual", "Desconectar la manguera de un tirón rápido"], "c": 0}, {"p": "Punto 26: Manipulación tras trabajos en caliente", "q": "Al concluir un proceso en caliente (corte, soldadura, precalentado), ¿cómo se deben manipular las piezas?", "o": ["Nunca tocarlas con las manos directamente; utilizar pinzas, tenazas o imanes y advertir al personal en sitio", "Tocarlas con el guante rápido para sentir si ya enfriaron", "Echarles agua con las manos desnudas", "Sujetarlas firmemente con las palmas de carnaza"], "c": 0}, {"p": "Punto 27: Puntos de atrapamiento y ayudas visuales", "q": "¿Qué debe hacerse antes de intervenir cualquier máquina según las ayudas visuales de la planta?", "o": ["Identificar los puntos de atrapamiento con la ayuda visual de seguridad: evitarlos, comunicarlos y reportarlos", "Retirar las ayudas visuales para no distraerse", "Cubrir los puntos de pellizco con cartón", "Intervenir la máquina a máxima velocidad sin avisar"], "c": 0}, {"p": "Punto 28: Colocación de mordazas de izaje", "q": "¿En qué tipo de material y bajo qué condición deben colocarse las mordazas de izaje?", "o": ["Solo en material estable y bien acomodado; nunca exponer las manos en material que pueda caer o reacomodarse", "En material apilado en falso o tambaleante", "Sosteniendo la lámina con la rodilla mientras se aprieta", "En paquetes sueltos que no tienen calzas"], "c": 0}, {"p": "Punto 29: Montaje de perno en acopladores", "q": "¿Qué herramienta debe utilizarse para colocar el perno en el montaje de acopladores de carro ferroviario?", "o": ["Utilizar ÚNICAMENTE el patín hidráulico asignado para las actividades; NO realizarlo de forma manual", "Empujar el perno con las manos y el hombro", "Golpear el perno directamente con un marro sosteniéndolo a mano limpia", "Patear el perno hasta que entre en el orificio"], "c": 0}, {"p": "Punto 30: Manejo de pistolas Huck y de impacto", "q": "¿Cómo deben manejarse las pistolas Huck e impacto y qué herramienta se requiere para la contratuerca?", "o": ["Operar con las 2 manos; para la contratuerca usar llave estriada tipo inglesa y apoyo de una persona auxiliar", "Operar con una mano y sostener la tuerca con pinzas de chófer", "Sostener la boquilla de la pistola Huck con los dedos al accionar", "Operar con el pie apoyado en el gatillo"], "c": 0}, {"p": "Punto 31: Ensamble y montaje en dispositivos", "q": "¿Qué restricción existe sobre iniciar operaciones en dispositivos de ensamble durante el montaje?", "o": ["No iniciar operaciones mientras equipo, personal o material esté realizando montaje de material o subensambles", "Iniciar la sujeción neumática en cuanto entre la primera placa", "Accionar los pisadores aunque el compañero esté acomodando piezas", "Pulsar el ciclo automático mientras se limpian rebabas"], "c": 0}, {"p": "Punto 32: Zona Naranja de pistones y pisadores", "q": "¿Qué representa la 'Zona Naranja' en los dispositivos neumáticos e hidráulicos?", "o": ["Es la zona de funcionamiento de cilindros hidráulicos, neumáticos o pisadores; NUNCA meter manos o extremidades allí", "Una zona libre para descansar las herramientas de mano", "Un área segura para colocar los brazos durante el trabajo", "Una zona donde es opcional el uso de guantes"], "c": 0}, {"p": "Punto 33: Sentido de corte con navajas", "q": "¿Cuál es la dirección obligatoria del corte cuando se utilizan navajas o elementos cortantes?", "o": ["Nunca hacer la operación de corte en dirección al cuerpo; cortar siempre hacia afuera", "Cortar hacia el pecho jalando con fuerza", "Cortar hacia la mano de apoyo que sujeta la pieza", "Cortar en círculos hacia el abdomen"], "c": 0}, {"p": "Punto 34: Uso de navajas o cúters autorizados", "q": "¿Qué tipo de navajas o herramientas de corte manual están permitidas en planta?", "o": ["Siempre utilizar navajas o cutter autorizados por seguridad (NUNCA herramientas hechizas o sin seguro retráctil)", "Hojas de segueta afiladas envueltas con cinta de aislar", "Cúters de papelería sin mecanismo de bloqueo", "Cuchillos de cocina modificados artesanalmente"], "c": 0}]}, "soldadura": {"name": "Proceso de Soldadura (30 Puntos)", "questions": [{"p": "Antes 1: Entrenamiento", "q": "¿Qué requisito formativo previo debe cumplir el personal para realizar trabajos de soldadura?", "o": ["Haber recibido entrenamiento para trabajos de soldadura (escuela interna)", "Solo tener ganas de aprender en la línea", "Haber visto videos tutoriales en internet", "Contar con secundaria terminada sin curso técnico"], "c": 0}, {"p": "Antes 2: Inspección diaria", "q": "¿Qué equipos deben someterse a inspección diaria antes de iniciar?", "o": ["Realizar la inspección diaria del alimentador y de la máquina soldadora", "Solo revisar que haya alambre en el carrete", "Revisar únicamente si el ventilador gira", "Inspeccionar solo el carro de ferrocarril"], "c": 0}, {"p": "Antes 3: Terminales de cables", "q": "¿Cómo deben encontrarse los cables de la soldadora en sus conexiones?", "o": ["Verificar y asegurar que los cables de la soldadora se encuentren correctamente ajustados en las terminales", "Flojos para que se desconecten rápido si se jala el cable", "Unidos con alambre recocido a las terminales", "Conectados directamente sin tornillos"], "c": 0}, {"p": "Antes 4: Estado del aislamiento", "q": "¿Cuáles son las condiciones obligatorias del recubrimiento aislante de los cables de soldadura?", "o": ["En buenas condiciones; no deben estar pelados, empatados ni expuestos; reportar cualquier anomalía al supervisor", "Pueden estar pelados si se colocan sobre tarimas de madera", "Se permite cinta canela para cubrir zonas quemadas", "Los cables expuestos no representan peligro en soldadura"], "c": 0}, {"p": "Antes 5: Alimentador en boom o charola", "q": "Cuando el alimentador se encuentre sobre un boom o charola, ¿qué elemento de sujeción debe verificarse?", "o": ["Asegurar que el alimentador cuente con su respectivo fleje hacia la charola del pedestal y su porta antorcha", "Que esté amarrado con una eslinga rota", "Que descanse suelto sobre el borde metálico", "Que cuelgue directamente sostenido por las mangueras"], "c": 0}, {"p": "Antes 6: EPP completo de soldador", "q": "¿Cuáles son los componentes del equipo de protección personal completo para soldadura?", "o": ["Monja, careta para soldar, camisola y pantalón de mezclilla, chamarra y pantalón de carnaza, calzado con puntera, guantes largos y respirador 3M", "Careta, playera de manga corta, guantes de hilo y tenis de lona", "Gafas de sol, mandil de plástico y botas de hule", "Únicamente careta y guantes cortos de electricista"], "c": 0}, {"p": "Antes 7: Estado del EPP", "q": "¿Qué revisión previa debe hacerse al equipo de protección personal de soldador?", "o": ["Verificar que todo el EPP se encuentre en buen estado, sin roturas, agujeros ni desgaste crítico", "Usarlo sin revisar, asumiendo que siempre protege", "Revisar únicamente que esté limpio superficialmente", "Comprobar que tenga el nombre del turno anterior"], "c": 0}, {"p": "Antes 8: Cambio de EPP dañado", "q": "En caso de necesitar cambio de EPP por daño o deterioro, ¿con qué anticipación debe solicitarse al supervisor?", "o": ["Solicitar a tu supervisor con al menos un día de anticipación", "Esperar a que se rompa por completo en medio del arco", "Pedírselo prestado a un compañero sin avisar", "Comprar uno propio en la ferretería local"], "c": 0}, {"p": "Antes 9: Capucha y materiales sintéticos", "q": "¿Qué especificaciones aplican para la capucha (monja) y careta de soldar?", "o": ["Verificar que no esté deshilachada y NO utilizar materiales sintéticos en la careta ni sustitutos de capucha", "Se puede usar cualquier bufanda de poliéster sintético", "Usar gorras de tela sintética debajo de la careta", "La capucha deshilachada no representa riesgo de incendio"], "c": 0}, {"p": "Antes 10: Antorcha de soldadura", "q": "¿Cómo debe encontrarse la antorcha de soldar antes de iniciar labores?", "o": ["En óptimas condiciones para ser utilizada; en caso de presentar daños, solicitar el cambio inmediato", "Con la tobera rota y el difusor tapado", "Con el gatillo trabado con cinta para no cansarse", "Con fuga de gas en el mango"], "c": 0}, {"p": "Antes 11: Retiro de combustibles", "q": "¿Qué materiales deben retirarse de las inmediaciones del área de soldadura antes de arrancar?", "o": ["Materiales sólidos como papel, cartón, madera, trapos y residuos de pintura o solventes", "Solo las piezas metálicas pesadas", "Únicamente las botellas de agua cerradas", "No es necesario retirar nada si hay mamparas"], "c": 0}, {"p": "Antes 12: Extintor y sombras", "q": "¿Qué dos verificaciones críticas de seguridad deben hacerse antes de encender el arco?", "o": ["Ubicar el extintor más cercano y calibrar la careta con la sombra requerida según fabricante", "Abrir la válvula de gas al máximo sin medir", "Verificar que la alarma general esté apagada", "Buscar una cubeta con agua común"], "c": 0}, {"p": "Durante 1: Uso de careta en óptimas condiciones", "q": "Durante el proceso de soldeo, ¿cómo debe utilizarse la careta?", "o": ["Utilizar siempre careta para soldar en óptimas condiciones, con micas limpias y filtro adecuado", "Mirar el arco a través de gafas de seguridad transparentes", "Cerrar los ojos justo al hacer contacto con el alambre", "Usar una careta con el cristal estrellado o roto"], "c": 0}, {"p": "Durante 2: Chamarra y pantalón de carnaza", "q": "¿Cuándo debe portarse la chamarra y el pantalón de carnaza durante la jornada?", "o": ["En todo momento durante el proceso de soldadura", "Solo cuando se suelde en posición sobrecabeza", "Únicamente si el supervisor está observando", "Se puede retirar la chamarra si hace calor en la nave"], "c": 0}, {"p": "Durante 3: Respirador media cara 3M", "q": "¿Cuál es la disposición de protección respiratoria durante la actividad de soldadura?", "o": ["Portar en todo momento el respirador reutilizable de media cara 3M con sus filtros para humos metálicos", "Usar cubrebocas quirúrgico de papel", "No usar respirador si la nave tiene puertas abiertas", "Colocarse el respirador colgado al cuello únicamente"], "c": 0}, {"p": "Durante 4: Cable alrededor del cuerpo", "q": "¿Por qué motivo NO se debe enrollar el cable de soldadura alrededor del cuerpo?", "o": ["Porque genera riesgo severo de choque eléctrico, quemaduras y campos magnéticos peligrosos", "Porque el cable se enreda y se ensucia la mezclilla", "Porque el alambre avanza más despacio", "Porque la máquina se apaga automáticamente"], "c": 0}, {"p": "Durante 5: Movimiento de la antorcha", "q": "¿Qué acción está terminantemente prohibida al realizar cambios de posición con la antorcha?", "o": ["NO deberás aventar la antorcha de un lugar a otro ni dejarla caer", "Pasar la antorcha con ambas manos de forma cuidadosa", "Colocarla en el soporte mientras te desplazas", "Desplazarse caminando con la antorcha sujeta"], "c": 0}, {"p": "Durante 6: Desenredo o cambio de alambre", "q": "Si necesitas desenredar o cambiar el rollo de alambre en el alimentador, ¿qué paso es obligatorio?", "o": ["Apagar el alimentador o equipo eléctrico antes de poder intervenirlo", "Hacerlo con la máquina encendida para comprobar el avance rápido", "Pulsar el microinterruptor de la antorcha mientras acomodas los rodillos", "Meter los dedos mientras el motor gira a baja velocidad"], "c": 0}, {"p": "Durante 7: Procedimiento seguro de cambio de posición", "q": "¿Cuál es la secuencia correcta para realizar un cambio de posición seguro mientras soldas?", "o": ["Bajar la antorcha sujetándola, levantar la careta, observar el entorno y compañeros, y luego cambiar de posición", "Caminar de espaldas con la careta abajo y el arco encendido", "Aventar la antorcha al suelo y correr a la siguiente posición", "Moverse a ciegas guiándose por las paredes del carro"], "c": 0}, {"p": "Durante 8: Líquidos sobre equipos eléctricos", "q": "¿Qué prohibición existe respecto a recipientes con líquidos y máquinas de soldar?", "o": ["No dejar recipientes con líquidos (botellas de agua, solventes) sobre equipos eléctricos o máquinas", "Se permite colocar botellas de refresco si están tapadas", "Se autoriza dejar vasos de café sobre el alimentador", "Solo se prohíbe el agua purificada"], "c": 0}, {"p": "Durante 9: Basura dentro de las piezas", "q": "¿Qué se debe evitar respecto al interior de las partes o carros que se están soldando?", "o": ["Evitar meter basura, trapos, colillas y envolturas en el interior de las piezas o ensambles", "Guardar los guantes viejos dentro de los postes del carro", "Usar el interior del ensamble como depósito temporal de botes", "Rellenar huecos con papel y cartón"], "c": 0}, {"p": "Finalizar 1: Apagado de máquina", "q": "¿Qué debe hacerse con la soldadora al finalizar la actividad o detenerla por tiempo considerable?", "o": ["Apagar la máquina soldadora por completo", "Dejarla encendida para el siguiente turno", "Dejar el alimentador energizado en modo purga", "Bajar la pastilla general sin apagar el equipo"], "c": 0}, {"p": "Finalizar 2: Alojamiento de la antorcha", "q": "¿Dónde se debe colocar la antorcha al concluir las labores?", "o": ["Colocar la antorcha en el porta antorchas; NUNCA dejarla en el piso ni sobre equipos", "Dejarla tirada en el suelo de la fosa", "Colgarla de la boquilla sobre una placa recién soldada", "Enredarla en los rieles de la vía"], "c": 0}, {"p": "Finalizar 3: Drenado de mangueras y línea de gas", "q": "¿Qué procedimiento de despresurización de gas debe aplicarse al concluir?", "o": ["Drenar la manguera y/o línea de gas y cerrar firmemente la válvula principal de gas", "Dejar la manguera presurizada para ahorrar tiempo mañana", "Desconectar la manguera jalándola con el gas fluyendo", "Quitar el flujómetro sin cerrar la válvula"], "c": 0}, {"p": "Finalizar 4: Válvula de gas cerrada", "q": "¿Qué verificación de seguridad es vital al abandonar el puesto de soldadura?", "o": ["No olvidar cerrar la válvula de suministro de gas de protección", "Dejar la válvula ligeramente abierta para ventilar la cabina", "Revisar que la válvula tenga fuga para que no se acumule presión", "Colocar cinta sobre la perilla del tanque"], "c": 0}, {"p": "Finalizar 5: Orden de mangueras y cables", "q": "¿Por qué es obligatorio enrollar mangueras y cables al término del turno?", "o": ["Para evitar que queden expuestos, se dañen y se conviertan en puntos de tropiezo para el personal", "Para que quepan en la mochila del soldador", "Para verificar que el cobre siga adentro", "Solo se enrollan si va a llover dentro de la nave"], "c": 0}, {"p": "Finalizar 6: Retracción y seguro del boom", "q": "Si tu estación cuenta con boom, ¿cómo debe asegurarse al finalizar?", "o": ["Retraer los brazos de los boom y colocar su respectivo seguro mecánico", "Dejar el boom completamente extendido atravesando la nave", "Amarrar el boom con una cuerda al carro de arrastre", "Dejar el boom colgado sin traba a media altura"], "c": 0}, {"p": "Finalizar 7: Área despejada al mover el boom", "q": "¿Qué debe comprobarse antes y durante la retracción del boom?", "o": ["Verificar que el área se encuentre libre y despejada de personal operativo y de obstáculos", "Hacerlo rápidamente sin mirar hacia los lados", "Pedirle a un compañero que empuje el boom con el hombro", "Retraerlo únicamente cuando la nave esté a oscuras"], "c": 0}, {"p": "Finalizar 8: Retiro de herramientas y puentes", "q": "¿Qué se debe retirar de la estructura al concluir la unión por soldadura?", "o": ["Retirar herramientas y materiales, y asegurar el retiro de puentes y mecanismos de inmovilización", "Dejar las prensas puestas para que la grúa las jale", "Olvidar los topes soldados a la estructura", "Dejar la masa o tierra pegada a la pieza en movimiento"], "c": 0}, {"p": "Finalizar 9: Limpieza final y partes del carro", "q": "¿Cuál es la última acción de orden y limpieza exigida por el protocolo de soldadura?", "o": ["Retirar toda la basura y envolturas, evitando meter basura dentro de las partes o huecos del carro", "Barrer la basura hacia abajo de las vías del tren", "Ocultar los trapos sucios dentro de la estructura metálica", "Dejar las colillas de electrodos en el pasillo"], "c": 0}]}, "escaleras": {"name": "Uso de Escaleras Industriales (37 Puntos)", "questions": [{"p": "Carros P1: Entrenamiento", "q": "¿Qué capacitación obligatoria debe tener el personal que utiliza escaleras con ruedas para acceso a carros?", "o": ["Entrenamiento certificado para trabajos en alturas", "Solo curso de inducción general de 1 hora", "Capacitación en primeros auxilios únicamente", "No requiere curso si la escalera tiene barandal"], "c": 0}, {"p": "Carros P2: Check List diario", "q": "¿Cuándo debe realizarse la inspección de la escalera de acceso a carros?", "o": ["Realizar la inspección diaria antes del arranque (Check List diario)", "Una vez cada mes por el área de compras", "Solo si la escalera tiene un peldaño roto", "Únicamente después de que ocurra una caída"], "c": 0}, {"p": "Carros P3: Pruebas de frenos", "q": "¿Qué prueba mecánica en ruedas es indispensable antes de usar la escalera?", "o": ["Hacer pruebas de funcionamiento del sistema de frenos de las ruedas", "Verificar que las ruedas giren libremente sin frenar", "Probar la resistencia golpeando las ruedas con un marro", "Engrasar las ruedas con aceite vegetal"], "c": 0}, {"p": "Carros P4: Puntos de apoyo indeseables", "q": "¿Qué condiciones del suelo o superficie deben evitarse al posicionar la escalera?", "o": ["Rejillas, coladeras, tapas rotas o mal soportadas y suelo natural flojo", "Piso de concreto nivelado y limpio", "Superficies sólidas de taller pavimentadas", "Áreas libres de humedad y obstáculos"], "c": 0}, {"p": "Carros P5: Aseguramiento con cadena", "q": "¿Cómo se debe asegurar la escalera al carro para evitar desplazamientos accidentales?", "o": ["Asegurar la escalera colocando firmemente la cadena de seguridad", "Amarrándola con rafia o alambre delgado", "Colocando un zapato viejo frente a la llanta", "No se requiere asegurar si las llantas son de goma"], "c": 0}, {"p": "Carros P6: Técnica de 3 puntos", "q": "¿Cuál es la técnica obligatoria para ascender y descender de las escaleras?", "o": ["Usa siempre la técnica de los 3 puntos de apoyo (dos manos y un pie, o dos pies y una mano)", "Bajar de espaldas corriendo de 2 en 2 peldaños", "Saltar desde el tercer peldaño al piso", "Subir con ambas manos ocupadas cargando herramienta"], "c": 0}, {"p": "Carros P7: Subida de materiales", "q": "¿Cómo deben subirse los materiales a la plataforma del carro?", "o": ["Preparar materiales antes de subir, solicitar ayuda de un compañero o usar cuerda con cubeta", "Cargar cajas pesadas abrazadas con las dos manos por la escalera", "Lanzar las herramientas desde el piso hacia la plataforma", "Subir con piezas de acero en los bolsillos del pantalón"], "c": 0}, {"p": "Carros P8: Cadena de bloqueo al bajar", "q": "Antes de descender por la escalera, ¿qué se debe verificar?", "o": ["Asegurar que la cadena de bloqueo de acceso esté debidamente puesta y controlada", "Que el piso del taller esté oscuro", "Que no haya nadie mirando hacia arriba", "Bajar sin sujetar los pasamanos"], "c": 0}, {"p": "Carros P9: Bloqueo de ruedas", "q": "¿Cómo deben asegurarse las ruedas de la escalera una vez posicionada?", "o": ["Las ruedas deben ser bloqueadas activando su sistema de freno mecánico", "Dejarlas libres para que la escalera se acomode sola", "Colocar trapos húmedos debajo de las ruedas", "Desmontar las llantas cada vez que se use"], "c": 0}, {"p": "Carros P10: Retiro antes de mover carro", "q": "Al terminar las actividades y antes de mover el carro ferroviario, ¿qué debe hacerse con la escalera?", "o": ["Retirar la cadena y llevar la escalera a su sitio de almacenamiento antes de mover el carro", "Dejar la escalera pegada al carro mientras este avanza", "Subirse a la escalera para dirigir el movimiento del carro", "Dejar la escalera atravesada en medio de las vías"], "c": 0}, {"p": "Plataforma P1-2: Check List y rutina", "q": "¿Qué procedimiento inicial rige para las escaleras con plataforma para trabajos varios?", "o": ["Realizar Check List diario y aplicar la rutina con los pasos de inspección y freno", "Usarla de inmediato sin revisión previa", "Pintar la escalera con pintura brillante cada semana", "Llenar formato solo en caso de auditoría"], "c": 0}, {"p": "Plataforma P3: Subir al barandal", "q": "¿Está permitido subirse al barandal de la escalera para alcanzar mayor altura?", "o": ["NUNCA subas al barandal para ganar más altura; mantén ambos pies en la plataforma", "Sí, si el trabajo es de corta duración", "Se permite sujetándose de una sola mano", "Se autoriza usando una tabla sobre el barandal"], "c": 0}, {"p": "Plataforma P4: Adhesivos sobre estructura", "q": "¿Por qué está prohibido pegar cintas, papel, silicón o selladores sobre la estructura de la escalera?", "o": ["Porque podrían estarse ocultando fisuras o defectos estructurales críticos", "Porque la escalera pierde su color institucional", "Porque aumenta el peso de la plataforma", "Porque la cinta atrae suciedad y polvo"], "c": 0}, {"p": "Plataforma P5: Movimiento con personal arriba", "q": "¿Cuál es la regla sobre mover la escalera cuando un trabajador se encuentra sobre ella?", "o": ["NUNCA mover la escalera cuando te encuentres sobre ella realizando tus actividades", "Se permite moverla despacio si el trabajador se sujeta fuerte", "Se puede mover si la distancia es menor a dos metros", "El trabajador debe impulsarse desde arriba"], "c": 0}, {"p": "Plataforma P6: Mover por terceros", "q": "¿Qué debes hacer si alguien intenta mover tu escalera mientras estás en la plataforma?", "o": ["NO permitas que nadie mueva tu escalera cuando estás arriba", "Pedirle que la mueva rápido para no perder tiempo", "Saltar al suelo inmediatamente antes de que ruede", "Agacharse en la plataforma y guardar silencio"], "c": 0}, {"p": "Plataforma P7: Sobreextensión del cuerpo", "q": "¿Qué peligro existe al jalar o sobreextenderse del barandal para alcanzar objetos lejanos?", "o": ["Riesgo de volcadura de la escalera y caída de altura; NUNCA sobreextenderse ni jalarse del barandal", "No hay peligro si el freno está puesto", "Solo se sobreextienden los brazos sin riesgo alguno", "Mejora el rendimiento de trabajo"], "c": 0}, {"p": "Plataforma P8: Almacenamiento final", "q": "¿Dónde debe dejarse la escalera con plataforma al concluir la jornada?", "o": ["En un sitio asignado donde NO interfiera con el paso o maniobra de los carros ni pasillos", "Atravesada en la entrada de la nave", "Pegada a los rieles de maniobra", "Dentro del área de soldadura"], "c": 0}, {"p": "Multimax P1: Capacitación", "q": "¿Qué formación se exige para usar la escalera vertical sobre puerta de carro Multimax?", "o": ["Entrenamiento certificado para trabajos en alturas", "Curso de pintura automotriz", "Haber manejado tractocamiones", "No requiere curso"], "c": 0}, {"p": "Multimax P2: Equipo de protección requerido", "q": "¿Qué equipo anticadícas específico debe usar el personal en la escalera Multimax?", "o": ["Retráctil con línea de cable de acero incluyendo línea de llamado y arnés de cuerpo completo", "Cinturón de liniero sencillo", "Arnés sin línea de vida", "Cuerda de manila amarrada a la cintura"], "c": 0}, {"p": "Multimax P3: Colocación del retráctil", "q": "¿Cómo debe colocarse y retirarse el sistema retráctil en el carro Multimax?", "o": ["Con personal sobre mesa elevadora en el peldaño más alto por medio de mosquetón", "Tirando del cable desde el suelo con un gancho improvisado", "Trepando por los peldaños sin protección previa", "Lanzándolo desde el suelo con una soga"], "c": 0}, {"p": "Multimax P4: Prueba con línea de llamado", "q": "¿Qué comprobación debe hacerse antes de conectarse al retráctil?", "o": ["Comprobar que opera correctamente el mecanismo retráctil tirando de su línea de llamado", "Verificar que el cable esté flojo y oxidado", "Engrasar el tambor del retráctil por fuera", "Dejarlo trabado de forma permanente"], "c": 0}, {"p": "Multimax P5: Conexión al aro dorsal", "q": "¿Qué destreza individual debe dominar el trabajador que usa arnés en esta escalera?", "o": ["Ser capaz de poner y quitar el gancho en el aro dorsal de su arnés por sí solo", "Depender siempre de un compañero que lo enganche", "Enganchar el mosquetón en una trabilla del pantalón", "Conectar el retráctil al anillo del reloj"], "c": 0}, {"p": "Multimax P6: Técnica 3:1 y saltos", "q": "¿Cómo debe realizarse el ascenso y descenso por la escalera vertical del carro?", "o": ["Aplicar la técnica de apoyo 3:1 para subir y bajar, de forma continua y SIN dar saltos", "Bajar deslizándose apoyado en las barandas", "Saltar los últimos 3 peldaños para ganar tiempo", "Subir a saltos peldaño por peldaño"], "c": 0}, {"p": "Multimax P7: Cable extendido en peldaños bajos", "q": "¿Por qué NUNCA se debe dejar el cable del retráctil extendido y enganchado a los peldaños bajos?", "o": ["Porque el resorte interno del equipo se daña por tensión constante y se acorta su vida útil", "Porque se ensucia con la grasa del carro", "Porque puede tropezar el maquinista", "Porque el cable se estira y pierde calibre"], "c": 0}, {"p": "Multimax P8: Liberación descontrolada del gancho", "q": "¿Qué ocurre si se suelta el gancho del retráctil dejándolo subir libre y descontroladamente?", "o": ["El impacto violento del gancho contra la carcasa rompe el mecanismo interno y daña el equipo", "El equipo se rebobina más eficientemente", "Se limpia el cable automáticamente", "No sufre ningún daño"], "c": 0}, {"p": "Multimax P9: Preparación de materiales previa", "q": "¿Cómo se debe abastecer el puesto de trabajo en alturas del Multimax?", "o": ["Preparar materiales antes de subir con ayuda de compañero o cuerda con cubeta", "Subir cargando rollos de cinta en las manos", "Llevar la máquina soldadora al hombro por la escalera", "Arrojar las piezas al techo"], "c": 0}, {"p": "Multimax P10: Conexión continua en bordes", "q": "¿Cuándo es obligatorio mantenerse conectado al sistema retráctil?", "o": ["Al subir o bajar materiales, realizar tareas o al encontrarse en el borde del piso", "Únicamente cuando se siente mareo", "Solo cuando empiece a llover", "Se puede desconectar si se sienta en el borde"], "c": 0}, {"p": "Multimax P11: Manos ocupadas al trepar", "q": "¿Cuál es la regla estricta sobre las manos al subir por la escalera vertical?", "o": ["Nunca subir con las manos ocupadas por objetos", "Subir con una mano ocupada si la pieza pesa menos de 5 kg", "Llevar herramientas pequeñas en los dedos", "Sujetarse solo con los codos"], "c": 0}, {"p": "Multimax P12: Operación fuera de estación (Paso de chango)", "q": "En caso de operación fuera de estación, ¿qué sistema alternativo de progresión se autoriza?", "o": ["Usar arnés con doble retráctil y técnica de paso 1 a 1 (técnica paso de chango)", "Subir sin línea de vida con mucho cuidado", "Usar una sola eslinga sin amortiguador", "Amarrarse con mecate de ixtle"], "c": 0}, {"p": "Marino P1: Entrenamiento", "q": "¿Qué formación previa se requiere para el ascenso por escaleras fijas tipo marino?", "o": ["Entrenamiento específico y acreditado para trabajos en alturas", "Curso de inducción general únicamente", "Tener buen estado físico sin curso", "No se requiere curso para escaleras fijas"], "c": 0}, {"p": "Marino P2-3: EPP específico tipo marino", "q": "¿Qué equipo de protección contra caídas debe portar el trabajador en escaleras marinas?", "o": ["Arnés con anclaje dorsal y pectoral, líneas de vida dobles y bloqueador/deslizador vertical (Lad-Saf)", "Cinturón de cuero de electricista", "Solo casco y chaleco", "Guantes de carnaza y tenis"], "c": 0}, {"p": "Marino P4: Dominio del dispositivo Lad-Saf", "q": "Cuando la escalera tipo marino cuenta con línea de vida fija de cable, ¿qué destreza debe poseer el usuario?", "o": ["Saber operar y acoplar con soltura y destreza el dispositivo deslizador Lad-Saf", "Amarrar el cable con un nudo ciego", "Desmontar el cable si estorba para subir", "Usar el Lad-Saf al revés para que no frene"], "c": 0}, {"p": "Marino P5: Estado del calzado", "q": "¿Qué inspección obligatoria debe realizarse en las suelas del calzado de seguridad antes de ascender?", "o": ["Verificar que el calzado esté completamente libre de sustancias que provoquen resbalones (grasa, aceite, pintura, lodo)", "Que los cordones estén desatados para mayor comodidad", "Que las suelas sean de cuero liso", "No es relevante el estado de la suela"], "c": 0}, {"p": "Marino P6: Regla de acompañamiento", "q": "¿Cuál es la norma de personal al realizar trabajos y ascensos en escaleras tipo marino?", "o": ["Asegurar que siempre te acompañe una segunda persona como mínimo para supervisión y apoyo", "Subir siempre completamente solo para no distraer a nadie", "Subir en grupos de cuatro personas en el mismo tramo", "Dejar a una persona durmiendo en la caseta"], "c": 0}, {"p": "Marino P7: Técnica 3:1 y prohibición de deslizamiento", "q": "¿Qué conducta está estrictamente prohibida al bajar de una escalera marina?", "o": ["Prohibido deslizarse como bombero o dar saltos; se debe aplicar técnica de apoyo 3:1 escalón por escalón", "Bajar paso a paso usando los peldaños", "Sujetar firmemente los largueros con las manos", "Mirar siempre hacia la escalera al descender"], "c": 0}, {"p": "Marino P8: Anclaje al borde de entrada", "q": "¿Qué medida debe tomarse al aproximarse a cualquier borde o entrada de la escalera marina en la azotea/plataforma?", "o": ["SIEMPRE mantenerse anclado a una estructura cerrada o punto certificado antes de aproximarse al borde", "Caminar al filo confiando en el equilibrio", "Asomarse sin arnés para verificar la altura", "Desconectarse antes de llegar a la plataforma superior"], "c": 0}, {"p": "Marino P9: Reporte de anomalías", "q": "Si se detecta corrosión, tornillos flojos o daño en la línea fija de la escalera marina, ¿a quién se debe reportar?", "o": ["Reportar cualquier anomalía en los sistemas fijos inmediatamente al área de Seguridad Industrial", "Intentar repararla con alambre de soldar", "Ignorar el defecto y continuar el ascenso rápido", "Avisar al personal de compras el próximo mes"], "c": 0}]}, "plataformas": {"name": "Plataformas Elevadoras Móviles de Personal (34 Puntos)", "questions": [{"p": "Punto 1: Capacitación DC-3", "q": "¿Qué acreditaciones DC-3 son obligatorias para el operador de plataforma elevadora móvil de personal?", "o": ["DC-3 'Seguridad para trabajos en alturas' y 'Operación segura de equipos de elevación'", "DC-3 en Primeros Auxilios únicamente", "Constancia de manejo vehicular estándar", "Carta de recomendación de supervisor anterior"], "c": 0}, {"p": "Punto 2: Evaluación médica previa", "q": "¿Qué exámenes de salud debe realizar el servicio médico al operador antes de autorizar la jornada?", "o": ["Prueba de equilibrio, prueba de alcoholemia y toma de presión arterial", "Solo examen de agudeza visual cada dos años", "Peso y talla exclusivamente", "Ninguno, basta con firmar la entrada"], "c": 0}, {"p": "Punto 3: Check list de equipo y mandos", "q": "¿Desde dónde debe probarse e inspeccionarse la plataforma y a quién se entrega el check list?", "o": ["Desde la consola de la canastilla y mando de tierra, entregando el formato al Ingeniero de Seguridad", "Solo desde el suelo sin probar la canastilla", "Únicamente después de haber terminado el trabajo", "Se entrega al operador del turno siguiente"], "c": 0}, {"p": "Punto 4: Anomalías en la plataforma", "q": "Si durante la inspección diaria de la plataforma detectas anomalías de funcionamiento, ¿qué acción corresponde?", "o": ["Comunicárselo inmediatamente a tu supervisor y no operar el equipo", "Operarla con cuidado a baja velocidad", "Puenteo de válvulas para omitir la falla", "Esperar a que termine la semana para reportarlo"], "c": 0}, {"p": "Punto 5: Check list de arnés y línea", "q": "¿A quién debe entregarse el check list diario de inspección de arnés y línea de vida?", "o": ["Debe ser entregado formalmente al Ingeniero de Seguridad", "Al personal de intendencia", "Se guarda en la cartera del trabajador", "No se entrega a nadie"], "c": 0}, {"p": "Punto 6: Daño en arnés o línea", "q": "Si en la inspección del arnés detectas costuras rotas o quemaduras, ¿qué se debe hacer?", "o": ["Comunicarlo de inmediato al supervisor para su retiro y reemplazo", "Coser la cinta con hilo común", "Usarlo solo por ese turno sin estirarlo", "Colocar cinta de aislar sobre la costura rota"], "c": 0}, {"p": "Punto 7: Espacio para maniobra", "q": "Antes de empezar a usar la plataforma, ¿qué se debe revisar respecto al entorno físico?", "o": ["Revisar el área de trabajo y comprobar que se dispone de suficiente espacio libre para realizar la maniobra", "Que haya música para amenizar el turno", "Que no haya jefes cerca", "No se requiere revisar el espacio si el equipo es compacto"], "c": 0}, {"p": "Punto 8: Estabilidad del terreno", "q": "¿Qué condición del suelo es indispensable verificar antes de posicionar la plataforma?", "o": ["Verificar que el terreno sea estable, nivelado y sin riesgo de atasco o hundimiento", "Que esté cubierto de lodo resbaladizo", "Que tenga pendiente pronunciada sin calzas", "No importa el piso mientras las llantas tengan aire"], "c": 0}, {"p": "Punto 9: Delimitación y acordonamiento", "q": "¿Por qué es obligatorio delimitar y acordonar la zona de trabajo de la plataforma elevadora?", "o": ["Para evitar que personas ajenas permanezcan y circulen por las proximidades y bajo la vertical", "Para reservar el espacio de estacionamiento del auto del supervisor", "Para que los montacargas pasen más rápido", "Solo por fines estéticos de la planta"], "c": 0}, {"p": "Punto 10: Protecciones de la canastilla", "q": "¿Qué componentes de seguridad de la canastilla deben verificarse antes de subir?", "o": ["Puertas de acceso, barandales perimetrales y barras de seguridad correctamente colocadas y bloqueadas", "Que la puerta pueda quedarse abierta amarrada con alambre", "Que los rodapiés hayan sido retirados para pisar mejor", "Que los barandales tengan holgura floja"], "c": 0}, {"p": "Punto 11: Acceso a la plataforma", "q": "¿Cuál es la forma correcta y normada de subir y bajar de la canastilla de la plataforma?", "o": ["Acceder SOLO por el acceso previsto (puerta/barra); NUNCA trepar por los brazos de elevación ni barandales", "Trepar por los brazos articulados mientras sube", "Saltar de la canastilla al techo del carro de ferrocarril", "Usar el contrapeso como escalón"], "c": 0}, {"p": "Punto 12: Capacidad máxima de carga", "q": "Al subir el operador con persona de apoyo, herramienta y materiales, ¿qué límite debe vigilarse?", "o": ["Verificar que no se supere la capacidad máxima indicada por el fabricante (consultar ficha técnica/manual)", "Subir hasta que el motor empiece a forzarse", "Cargar hasta 1 tonelada sin importar el modelo", "El peso de las personas no se suma con la herramienta"], "c": 0}, {"p": "Punto 13: Uso de estabilizadores", "q": "Si la plataforma móvil dispone de estabilizadores o 'outriggers', ¿cómo deben utilizarse?", "o": ["Usarlos SIEMPRE y comprobar que se hayan desplegado completamente sobre terreno firme", "Usarlos solo si hace mucho viento", "Bajar solo dos de los cuatro estabilizadores", "Omitirlos si el piso tiene inclinación"], "c": 0}, {"p": "Punto 14: Condiciones meteorológicas límite", "q": "¿Cuáles son las condiciones climáticas límite para autorizar la operación de la plataforma?", "o": ["Sin lluvia, viento menor a 25 km/h, sin granizo y sin tormenta eléctrica", "Vientos de hasta 60 km/h si se trabaja pegado a la pared", "Bajo tormenta eléctrica si se usan botas de hule", "Bajo lluvia fuerte si el operador lleva impermeable"], "c": 0}, {"p": "Punto 15: EPP específico en altura", "q": "¿Qué EPP específico debe portar el operador durante la utilización de la plataforma móvil?", "o": ["Casco con barbiquejo, arnés de seguridad y línea de vida restrictiva o retráctil anclada a punto certificado", "Arnés puesto pero sin anclar al punto de canastilla", "Casco sin barbiquejo y chaleco únicamente", "Cinturón abdominal común"], "c": 0}, {"p": "Punto 16: Traslados y banderero", "q": "Para realizar traslados y cambios de posición del equipo a diferentes áreas, ¿qué apoyo humano es obligatorio?", "o": ["Apoyo obligatorio de un banderero que guíe la maniobra para librar obstáculos que impidan visibilidad", "Trasladarse solo mirando por los espejos", "Avanzar a toda velocidad tocando el claxon continuamente", "No requiere banderero si la canastilla está vacía"], "c": 0}, {"p": "Punto 17: Altura durante el traslado", "q": "¿Cómo deben colocarse las plumas y brazos de la plataforma durante los traslados en planta?", "o": ["Replegar todas las plumas y brazos de modo que la canastilla quede a la menor altura posible", "Con la canastilla elevada a media altura para ver mejor", "Con el brazo completamente extendido hacia el frente", "A la altura máxima para librar los letreros"], "c": 0}, {"p": "Punto 18: Silbato del banderero", "q": "¿Qué instrumento auxiliar auditivo debe usar obligatoriamente la persona de apoyo (banderero)?", "o": ["Hacer uso del silbato como medio auxiliar auditivo para alertar al entorno", "Gritar con las manos en la boca", "Hacer señas con un trapo sucio", "Llamar por teléfono celular al operador"], "c": 0}, {"p": "Punto 19: Perímetro de barandales y rodapié", "q": "¿Cuál es la regla de posición de pies y cuerpo dentro de la canastilla durante la operación?", "o": ["Mantenerse siempre dentro del perímetro; PROHIBIDO subirse sobre los barandales o el rodapié", "Pararse en el barandal medio para ganar 30 cm de altura", "Apoyar un pie en el rodapié y el otro en la estructura del carro", "Sentarse en el borde del barandal superior"], "c": 0}, {"p": "Punto 20: Maniobras bruscas y volcadura", "q": "¿Por qué está prohibido arrancar o frenar bruscamente con la plataforma elevadora?", "o": ["Porque las fuerzas de inercia dinámicas pueden provocar la volcadura catastrófica del equipo", "Porque se derrama el combustible del tanque", "Porque se calientan los frenos delanteros", "Porque se borran las líneas pintadas en el suelo"], "c": 0}, {"p": "Punto 21: Tránsito sobre tapas y registros", "q": "¿Qué superficie está prohibido pisar con las ruedas de la plataforma?", "o": ["No pasar con el equipo sobre registros, tapas de drenaje o fosas", "Pavimento de concreto industrial", "Caminos asfaltados interiores", "Planchas de patio de maniobras"], "c": 0}, {"p": "Punto 22: Distancia a líneas eléctricas", "q": "¿Qué distancia de seguridad mínima debe mantenerse respecto a líneas energizadas menores o iguales a 50 kV?", "o": ["Mantener siempre una distancia de seguridad mínima de 3.0 metros", "1.0 metro de distancia", "50 centímetros", "Basta con no tocar directamente los cables"], "c": 0}, {"p": "Punto 23: Velocidad de viento para suspensión", "q": "¿A partir de qué velocidad de viento es obligatorio suspender las actividades en plataforma?", "o": ["Suspender actividades cuando el viento supere los 25 km/h", "Cuando el viento supere los 70 km/h", "Solo si el viento arranca las láminas del techo", "No se suspende nunca por viento"], "c": 0}, {"p": "Punto 24: Suspensión por tormenta eléctrica", "q": "¿Ante qué fenómenos meteorológicos se deben suspender de inmediato las maniobras en plataforma?", "o": ["Ante la presencia de lluvia, granizo o tormenta eléctrica", "Únicamente si cae granizo de más de 5 cm", "Solo si la lluvia dura más de tres horas", "Cuando el cielo esté ligeramente nublado"], "c": 0}, {"p": "Punto 25: Abastecimiento de combustible", "q": "¿Cuál es la condición del motor para abastecer de combustible a la plataforma?", "o": ["El motor debe estar completamente apagado; PROHIBIDO abastecer combustible con el motor en marcha", "Con el motor encendido en ralentí para no descargar la batería", "Acelerando el motor para que recircule la gasolina", "Con la canastilla elevada en las alturas"], "c": 0}, {"p": "Punto 26: Ventilación y monóxido de carbono", "q": "¿Por qué los equipos con motor de combustión interna deben usarse en áreas ventiladas?", "o": ["Para prevenir el riesgo de intoxicación fatal por monóxido de carbono acumulado", "Para enfriar el escape más rápido", "Para que el ruido se disipe hacia afuera", "Para evitar que se acumule polvo en el filtro"], "c": 0}, {"p": "Punto 27: Carga de batería durante el uso", "q": "¿Está permitido cargar la batería de la plataforma eléctrica mientras se está usando?", "o": ["NO cargues la batería mientras estés haciendo uso del equipo", "Sí, siempre que el cable sea largo", "Sí, para que no pierda fuerza de elevación", "Se autoriza conectarla directo a una planta de luz en marcha"], "c": 0}, {"p": "Punto 28: Nivel mínimo de batería para operar", "q": "¿Cuál es el porcentaje mínimo de carga en baterías por debajo del cual NO se debe operar?", "o": ["No operar el equipo con una carga en baterías inferior al 20%", "Inferior al 5%", "Operar hasta que se apague totalmente en las alturas", "Inferior al 50%"], "c": 0}, {"p": "Punto 29: Lugar de estacionamiento", "q": "¿Dónde debe estacionarse la plataforma al finalizar las tareas?", "o": ["En un lugar designado donde no obstruya el tráfico peatonal, vehicular ni los procesos de producción", "En medio de la vía principal de ferrocarril", "Bloqueando la salida del almacén de solventes", "Frente al hidrante contra incendios"], "c": 0}, {"p": "Punto 30: Superficie de estacionamiento", "q": "¿Cuáles son los requisitos del suelo donde se debe dejar estacionada la plataforma?", "o": ["Superficie estable, resistente, nivelada y sin pendientes", "Suelo de tierra suelta con barro", "Encima de rejillas de desagüe", "En una rampa con 30% de pendiente sin calzas"], "c": 0}, {"p": "Punto 31: Distancia a excavaciones", "q": "¿A qué distancia mínima del borde de excavaciones, zanjas o desniveles debe estacionarse el equipo?", "o": ["No estacionar el equipo a menos de 3.0 metros del borde de excavaciones o similares", "A 50 cm del borde", "Con las llantas delanteras al ras del barranco", "A 1 metro de distancia"], "c": 0}, {"p": "Punto 32: Posición final de plumas", "q": "¿En qué configuración deben dejarse las plumas y canastilla al terminar el turno?", "o": ["Replegar todas las plumas de forma que la plataforma quede a la menor altura posible", "Completamente desplegada en lo alto para que no la alcancen", "Con el brazo extendido horizontalmente sobre el pasillo", "A media altura con la canastilla inclinada"], "c": 0}, {"p": "Punto 33: Abandono de plataforma", "q": "¿Cuál es la regla de oro respecto al motor y el abandono de la plataforma?", "o": ["No abandonar jamás la plataforma mientras el motor esté en funcionamiento", "Dejar el motor encendido con el freno de mano suelto", "Bajar a comer dejando el equipo encendido", "Dejar a una persona sin entrenamiento a cargo del motor prendido"], "c": 0}, {"p": "Punto 34: Retiro de llaves", "q": "¿Por qué es obligatorio retirar las llaves de los interruptores al terminar la actividad?", "o": ["Para garantizar que ninguna persona no autorizada pueda hacer uso del equipo de elevación", "Para que no se las roben del tablero", "Porque las llaves se descargan solas", "Para entregarlas al guardia de caseta únicamente"], "c": 0}]}, "bandera_azul": {"name": "Protocolo de Seguridad Bandera Azul (19 Puntos)", "questions": [{"p": "Punto 1: Uso de banderas azules", "q": "¿Cuándo y para qué se deben utilizar obligatoriamente las banderas azules?", "o": ["Cuando el personal realiza trabajos en carros y material rodante para advertir de su presencia", "Para indicar que el carro está pintado y seco", "Como señal de que el carro está listo para ser despachado a cliente", "Para apartar lugar de estacionamiento en patios"], "c": 0}, {"p": "Punto 2: Calzas o topes", "q": "¿Qué dispositivo físico de inmovilización debe colocarse en material rodante para impedir su movimiento?", "o": ["Calzas o topes mecánicos en las ruedas sobre riel", "Pedazos de madera o tabiques sueltos", "Cintas de precaución amarradas al riel", "Banderolas rojas en las esquinas"], "c": 0}, {"p": "Punto 3: Verificación previa al movimiento", "q": "Antes de cada movimiento de carros, ¿cuál es la secuencia obligatoria de verificación de personas?", "o": ["Primero el supervisor y después el personal de maniobras verifican que no haya personal laborando en la unidad", "El maquinista avanza y toca el claxon sin bajarse a revisar", "Se confía en que los trabajadores ya escucharon el motor", "El operador del tractor decide por cuenta propia"], "c": 0}, {"p": "Punto 4: Retiro de banderas por supervisor", "q": "¿Quién es el único autorizado para retirar las banderas azules cuando se solicita el movimiento de carros?", "o": ["El supervisor, una vez que verifica personalmente que no hay personal trabajando en la unidad", "Cualquier operario que necesite que muevan el carro", "El conductor del tractor de arrastre", "El vigilante de la caseta de acceso"], "c": 0}, {"p": "Punto 5: Advertencia acústica de movimiento", "q": "¿Qué medios acústicos de advertencia deben emplearse antes de mover el material rodante?", "o": ["Silbato neumático, eléctrico o individual para advertir a todo el personal del movimiento inminente", "Gritar fuerte desde la cabina del tractor", "Golpear el riel con un tubo de acero", "Hacer señas con las manos únicamente"], "c": 0}, {"p": "Punto 6: Distancia de retiro del personal", "q": "¿A qué distancia mínima obligatoria debe retirarse todo el personal de la unidad que se va a mover?", "o": ["Retirarse al menos 1.5 metros de la unidad, asegurando no dejar herramientas, puertas abiertas ni equipos", "A 30 centímetros pegado a la carrocería", "Basta con quedarse de pie sobre el estribo del carro", "No se requiere retiro si el carro va muy despacio"], "c": 0}, {"p": "Punto 7: Unidades acopladas a equipos de arrastre", "q": "¿Qué está terminantemente prohibido hacer respecto a unidades acopladas a remolcador, tractor, car cady o car puller?", "o": ["No acercarse, ni subir o entrar a carros o unidades acopladas o enganchadas a equipos de arrastre", "Subirse al estribo para viajar como pasajero", "Ingresar a buscar una herramienta olvidada mientras está enganchado", "Apoyar la espalda en el carro mientras el tractor arranca"], "c": 0}, {"p": "Punto 8: Cruce de vías en maniobra", "q": "¿Cuál es la regla de oro para cruzar vías de ferrocarril cuando una maniobra está en proceso?", "o": ["NO cruzar vías; solo el personal encargado puede autorizar cruzar dando indicaciones directas y bien visibles", "Correr rápido antes de que pase el carro", "Pasar por debajo del acoplador entre dos carros", "Cruzar si la unidad viene a menos de 5 km/h"], "c": 0}, {"p": "Punto 9: Colocación de calzas post-maniobra", "q": "Una vez concluida la maniobra de posicionamiento del carro, ¿dónde deben colocarse las calzas?", "o": ["Colocar calzas al frente y detrás de la unidad para impedir cualquier movimiento en ambos sentidos", "Solo una calza en una rueda delantera", "Dejar el carro sin calzas si la vía se ve plana", "Colocar calzas únicamente al final del turno"], "c": 0}, {"p": "Punto 10: Operación de equipos de arrastre", "q": "¿Quiénes pueden operar los equipos de arrastre (tractores, car cady, car puller)?", "o": ["Personal con entrenamiento específico y autorización formal por escrito de su supervisor", "Cualquier persona con licencia de conducir de automóvil particular", "Cualquier operador que sepa meter velocidades", "Personal que tenga urgencia por despejar la vía"], "c": 0}, {"p": "Punto 11: Uso indebido del transfer", "q": "¿Qué prohibición existe sobre el uso de la mesa transfer para el tránsito peatonal?", "o": ["Está prohibido usar el transfer como puente para cruzar a pie las fosas", "Se permite cruzar por el transfer si no se está moviendo", "Se autoriza cruzar si se hace corriendo", "Solo se prohíbe en días lluviosos"], "c": 0}, {"p": "Punto 12: Línea de tracción del Car Puller", "q": "Cuando el cable o malacate del Car Puller está colocado o tensado, ¿qué restricción rige?", "o": ["Nadie debe cruzar la línea de tracción del cable o malacate", "Se puede brincar por encima del cable tensado", "Se permite pisar el cable para pasar al otro lado", "Cruzar rápido agachándose por debajo"], "c": 0}, {"p": "Punto 13: Respeto de indicaciones en área", "q": "¿Por qué es obligatorio respetar todas las indicaciones, señales y delimitaciones en tu área?", "o": ["Para disminuir sustancialmente las posibilidades de sufrir un accidente de trabajo", "Por cumplir un requisito decorativo de la planta", "Para evitar llamadas de atención de recursos humanos", "Solo por instrucciones de auditorías externas"], "c": 0}, {"p": "Punto 14: Fin de actividades y ausencias", "q": "¿Qué aviso previo debe darse si un trabajador debe ausentarse o retirarse de su área operativa?", "o": ["Retirarse al término de actividades y dar aviso inmediato al supervisor si debemos ausentarnos", "Irse sin avisar a nadie confiando en que no lo noten", "Dejar encargado el puesto con un trabajador no capacitado", "Desconectarse sin reportar el estatus de la vía"], "c": 0}, {"p": "Punto 15: Operación de maquinaria sin autorización", "q": "¿Bajo qué condiciones está prohibido operar cualquier equipo o maquinaria en planta?", "o": ["NO OPERAR equipos sin contar con autorización por escrito ni capacitación certificada", "Se puede operar si te lo pide verbalmente un compañero", "Se autoriza operar si viste cómo lo hacía el turno anterior", "Se puede usar si el equipo tiene las llaves puestas"], "c": 0}, {"p": "Punto 16: Notificaciones de seguridad al supervisor", "q": "¿Qué situaciones deben notificarse de forma inmediata al supervisor según el inciso 16?", "o": ["Anomalías que pongan en peligro, avisar peligros a compañeros, dudas de Bandera Azul y reparaciones de Mantenimiento", "Solo cuando ocurra un accidente grave", "Únicamente si se rompe una herramienta costosa", "Al final de mes en el reporte general"], "c": 0}, {"p": "Punto 17: Subida a carros post-maniobra", "q": "¿Cuándo está permitido volver a subir o intervenir un carro después de una maniobra?", "o": ["NUNCA subir a un carro sin el aviso del supervisor o del personal de maniobras de que la maniobra ha concluido", "Subir en cuanto el tractor se detenga sin esperar aviso", "Subir si el carro aún va rodando despacio", "Subir si la bandera azul todavía no ha sido colocada"], "c": 0}, {"p": "Punto 18: Interrupción de la maniobra", "q": "Si por cualquier motivo una maniobra de arrastre se detiene temporalmente, ¿qué se exige antes de reanudarla?", "o": ["Es indispensable realizar un nuevo recorrido completo de verificación antes de retomar la maniobra", "Acelerar inmediatamente el tractor sin volver a revisar", "Tocar el claxon y arrancar sin bajarse", "Asumir que nadie se acercó durante la pausa"], "c": 0}, {"p": "Punto 19: Carros con bandera azul colocada", "q": "¿Qué prohibición absoluta existe sobre carros que tienen instalada una bandera azul?", "o": ["Queda PROHIBIDO enganchar o acoplar carros o unidades cuando existe una bandera azul sobre la unidad", "Se pueden acoplar despacio sin empujar fuerte", "Se pueden enganchar si el supervisor está en la cabina del tractor", "La bandera azul solo impide abrir las puertas, no enganchar"], "c": 0}]}, "quimicos": {"name": "Manejo de Sustancias Químicas (22 Puntos)", "questions": [{"p": "Punto 1: Contenedores autorizados", "q": "¿Qué tipo de recipientes deben utilizarse para el manejo de sustancias químicas?", "o": ["Usar contenedores de fábrica o recipientes debidamente autorizados e identificados", "Botellas de refresco o garrafones de agua reciclados", "Cubetas de pintura abiertas sin tapa", "Latas de comida vacías"], "c": 0}, {"p": "Punto 2: Despacho de solventes", "q": "¿Cómo se deben despachar los solventes y cuál es la condición de sus recipientes?", "o": ["Usar siempre bombas manuales y mantener cerrados los contenedores en todo momento", "Vaciar directamente inclinando el tambor a pulso", "Dejar los tambores destapados para facilitar la evaporación", "Succionar el solvente con manguera usando la boca"], "c": 0}, {"p": "Punto 3: Conexión a tierra en trasvase", "q": "¿Qué medida obligatoria contra estática debe aplicarse al trasvasar químicos en contenedores metálicos?", "o": ["Los contenedores metálicos deben estar conectados a tierra física durante el trasvase", "Colocar un trapo húmedo debajo del bote", "Aislar el contenedor con cinta de plástico", "No se requiere tierra si el solvente no tiene olor"], "c": 0}, {"p": "Punto 4: Uso continuo de EPP", "q": "¿Cómo debe portarse el EPP para el manejo de productos químicos?", "o": ["Usar el EPP indicado para tus operaciones de forma correcta y TODO el tiempo de tu operación", "Usarlo solo cuando haya presencia de inspectores", "Quitarse los lentes si se empañan con los vapores", "Usarlo únicamente durante el mezclado inicial"], "c": 0}, {"p": "Punto 5: Protección respiratoria en cabinas", "q": "¿Por qué es indispensable el uso del respirador dentro de las cabinas de pintura?", "o": ["Para no exponerse a los vapores orgánicos y nieblas de pintura altamente tóxicas e inflamables", "Para que no se huela el aroma a diluyente", "Solo para evitar mancharse la nariz", "No es indispensable si los extractores están encendidos"], "c": 0}, {"p": "Punto 6: Manipulación con guantes y reemplazo", "q": "¿Cuál es la regla sobre el uso y cambio de guantes al manejar solventes o pinturas?", "o": ["NUNCA manejar solventes o pinturas sin guantes y cambiarlos cuando estén saturados o rotos", "Manejar solventes con las manos limpias para sentir la textura", "Usar guantes de tela de algodón común", "Reutilizar guantes rotos amarrándolos con liga"], "c": 0}, {"p": "Punto 7: Alimentos y bebidas en cabinas", "q": "¿Por qué está estrictamente prohibido consumir alimentos o bebidas dentro de las cabinas?", "o": ["Porque se contaminan con químicos y vapores produciendo graves problemas de intoxicación y salud", "Porque se pueden derramar sobre la pintura fresca", "Porque atrae insectos al área", "Solo se prohíben las comidas calientes"], "c": 0}, {"p": "Punto 8: Pequeñas cantidades y etiquetas", "q": "Cuando requieras pequeñas cantidades de pintura o solventes, ¿qué dos condiciones deben cumplirse?", "o": ["Usar contenedores autorizados y colocar inmediatamente su etiqueta de identificación", "Vaciar en vasos desechables sin rotular", "Llevar el líquido en botes de refresco con la etiqueta original del refresco", "Guardar el químico en bolsas de plástico comunes"], "c": 0}, {"p": "Punto 9: Conexiones bajo presión", "q": "¿Qué se debe verificar antes de hacer fluir materiales químicos o pintura a presión?", "o": ["Verificar siempre que todas las conexiones y mangueras estén perfectamente ajustadas y aseguradas", "Abrir la válvula a máxima presión de golpe", "Sostener la unión con la mano por si se zafa", "Poner cinta de aislar sobre las roscas barridas"], "c": 0}, {"p": "Punto 10: Disposición de residuos", "q": "¿Qué debe hacerse con los materiales de desecho derivados del uso de químicos?", "o": ["Identificar los contenedores de residuos peligrosos y llevar los materiales de desecho al lugar indicado", "Arrojarlos al contenedor de basura general inorgánica", "Dejarlos abandonados en los pasillos de la nave", "Enterrarlos en áreas verdes de la planta"], "c": 0}, {"p": "Punto 11: Derrame en drenajes o tierra", "q": "¿Cuál es la prohibición absoluta sobre vertido de residuos de pintura o solventes?", "o": ["NUNCA derramar residuos de pintura o químicos en coladeras, drenajes o suelo natural (tierra)", "Se pueden tirar al drenaje si se echa mucha agua después", "Se pueden vaciar en la tierra para que se absorban", "Solo se prohíbe tirar solvente puro, la pintura sí se permite"], "c": 0}, {"p": "Punto 12: Higiene antes de comer", "q": "¿Qué protocolo higiénico debe realizarse antes de tomar alimentos en el comedor?", "o": ["Quitarse el EPP completo y lavar manos y antebrazos minuciosamente con agua y jabón", "Comer con los guantes puestos para no tocar la comida", "Limpiarse las manos con solvente o thiner antes de comer", "Sacudirse la ropa con aire a presión únicamente"], "c": 0}, {"p": "Punto 13: Limpieza y contenedores rojos", "q": "Al limpiar derrames menores con trapos, ¿en qué contenedor deben depositarse los trapos impregnados?", "o": ["En los contenedores rojos exclusivos para residuos peligrosos impregnados", "En el bote de basura común de la oficina", "En el suelo debajo de la mesa de trabajo", "En cajas de cartón abiertas"], "c": 0}, {"p": "Punto 14: EPP durante limpieza de derrames", "q": "¿Qué equipo de protección personal se debe portar al limpiar derrames de químicos y residuos?", "o": ["Usar respirador para vapores orgánicos y guantes adecuados, ya que los vapores siguen presentes", "Únicamente lentes transparentes", "No se requiere EPP si el derrame es pequeño", "Basta con usar mandil de papel"], "c": 0}, {"p": "Punto 15: Acciones ante un derrame mayor", "q": "Si detectas un derrame químico, ¿cuáles son las acciones inmediatas a seguir?", "o": ["Cerrar válvulas de paso, dar aviso inmediato al supervisor, contener con trapos, proteger coladeras y restringir paso", "Correr fuera de la nave sin avisar a nadie", "Echarle agua a presión con manguera hacia la calle", "Esperar a que se evapore solo sin acordonar"], "c": 0}, {"p": "Punto 16: Equipos eléctricos no aprobados", "q": "¿Qué tipo de equipos eléctricos están estrictamente prohibidos en cabinas de pintura y cocinas según NFPA 33?", "o": ["Equipos eléctricos NO APROBADOS Clase I Div. 1 (extensiones, reflectores caseros, ventiladores, sonido)", "Equipos intrínsecamente seguros certificados a prueba de explosión", "Lámparas con certificación Clase I División 1", "Sistemas de extracción antiexplosión"], "c": 0}, {"p": "Punto 17: Procedimiento de Trabajos en Caliente 201-1821", "q": "¿Qué procedimiento de seguridad debe aplicarse antes de generar chispas o flama cerca de químicos o cabinas?", "o": ["Aplicar estrictamente el Procedimiento de Seguridad en Trabajos en Caliente 201-1821 con permiso formal", "Hacer el trabajo rápido antes de que se junten vapores", "Poner una mampara de cartón para tapar la chispa", "Pedir permiso verbal a cualquier compañero"], "c": 0}, {"p": "Punto 18: Ropa impregnada y equipos no sellados", "q": "ANTES de operar equipos eléctricos no sellados, ¿qué debes hacer si tu ropa o EPP tiene solvente?", "o": ["Retirar la ropa y equipo impregnado con pintura, solventes o sustancias inflamables antes de operar", "Operar el equipo rápidamente para ventilar la ropa", "Mojar la ropa impregnada con más solvente", "Ignorarlo si la mancha es pequeña"], "c": 0}, {"p": "Punto 19: Instalaciones eléctricas improvisadas", "q": "¿Cuál es la regla respecto a conexiones e instalaciones eléctricas en áreas de manejo de químicos?", "o": ["NUNCA uses instalaciones eléctricas provisionales o cables empatados e improvisados", "Se permiten cables pelados amarrados con cinta si no chispean", "Se autoriza usar contactos caseros si están altos", "Se permiten multicontactos domésticos sobre el tambor de solvente"], "c": 0}, {"p": "Punto 20: Distancia de estaciones de recarga", "q": "¿A qué distancia mínima deben ubicarse las estaciones de recarga respecto a cabinas, cocinas y accesos?", "o": ["Al menos a 3.0 metros retiradas de cabinas, cocinas y sus accesos", "A 50 centímetros de la puerta de la cabina", "Directamente dentro de la cocina de pintura", "A 1 metro de los tambores de thiner"], "c": 0}, {"p": "Punto 21: Celulares y bocinas", "q": "¿Qué restricción absoluta rige sobre el uso de celulares y bocinas dentro de cabinas y áreas de químicos?", "o": ["Está terminantemente PROHIBIDO el uso de teléfonos celulares y bocinas en cabinas, cocinas o sitios de químicos", "Se permiten celulares si se usan con audífonos", "Se autorizan bocinas si tienen volumen moderado", "Se permiten celulares si están en modo avión"], "c": 0}, {"p": "Punto 22: Herramientas antichispa y aislamiento", "q": "¿Qué características deben tener las herramientas eléctricas y de golpe dentro de áreas de químicos?", "o": ["Herramienta eléctrica con doble aislamiento y herramienta de golpe de bronce (antichispa)", "Martillos y cinceles de acero al carbono común", "Herramientas eléctricas sin tierra física", "Marros de fierro colgado que generen chispas al golpear"], "c": 0}]}, "oxicorte": {"name": "Seguridad en Oxicorte / Oxiacetileno (37 Puntos)", "questions": [{"p": "Punto 1: Check List diario", "q": "¿Cuándo debe realizarse el Check List en equipos de oxicorte?", "o": ["Realizar el Check List diario previo al uso del equipo", "Solo una vez por semana", "Únicamente si el cilindro está casi vacío", "Cada vez que se compre un soplete nuevo"], "c": 0}, {"p": "Punto 2: Purga de válvulas", "q": "¿En qué momento se deben purgar las válvulas de los cilindros de gas?", "o": ["Antes de conectar el regulador a los cilindros", "Después de encender el soplete", "Únicamente cuando el cilindro esté completamente vacío", "Con la flama ya encendida"], "c": 0}, {"p": "Punto 3: Grasa y aceites en válvulas", "q": "¿Qué se debe verificar estrictamente en las válvulas de oxígeno y guantes del operador?", "o": ["Verificar que no tengan absolutamente nada de grasa o aceites lubricantes (riesgo de explosión espontánea)", "Que tengan una capa de grasa automotriz para lubricar la rosca", "Que los guantes estén empapados de aceite mineral", "Que se use teflón con grasa para sellar la cuerda"], "c": 0}, {"p": "Punto 4: Desalojo de polvo y posición del cuerpo", "q": "¿Cómo y desde qué posición se debe abrir un segundo la válvula para retirar el polvo acumulado?", "o": ["Abrir un segundo parado del lado contrario a la salida del gas, NUNCA de frente a la descarga", "Parado de frente mirando fijamente el orificio", "Inclinado sobre la válvula con la cara encima", "Con la mano tapando la salida"], "c": 0}, {"p": "Punto 5: Conexión de reguladores y roscas", "q": "¿Qué diferencia crítica existe entre la rosca del regulador de acetileno y la de oxígeno?", "o": ["La rosca del regulador para acetileno es cuerda izquierda (contraria a la de oxígeno); pararse del lado opuesto", "Ambas roscas son iguales y universales", "La del oxígeno es de paso fino y cuerda izquierda", "Se deben forzar con martillo si no entran"], "c": 0}, {"p": "Punto 6: Posición para abrir cilindros", "q": "¿Dónde debe colocarse el operador al momento de abrir las válvulas de los cilindros?", "o": ["Colocarse del lado opuesto de las conexiones, NUNCA de frente al regulador o manómetro", "Directamente de frente al cristal del manómetro", "Con la cabeza sobre el volante de la válvula", "Abrazando el cilindro por el frente"], "c": 0}, {"p": "Punto 7: Apertura de válvula de oxígeno", "q": "¿Cómo debe abrirse la válvula del cilindro de oxígeno y por qué?", "o": ["Abrir COMPLETAMENTE la válvula para sellar el vástago en su asiento superior y evitar fugas", "Abrir solo un cuarto de vuelta", "Abrir media vuelta únicamente", "Dejarla floja para que gire fácil"], "c": 0}, {"p": "Punto 8: Apertura de válvula de acetileno", "q": "¿Cuánto debe abrirse como máximo la válvula del cilindro de acetileno?", "o": ["Abrir solamente 3/4 de vuelta y como MÁXIMO 1/2 a 3/4 de vuelta para permitir un cierre de emergencia rápido", "Abrir 5 vueltas completas al tope", "Retirar el volante de apertura con pinzas", "Abrirla hasta que rechine el vástago"], "c": 0}, {"p": "Punto 9: Límite de presión de acetileno", "q": "¿Cuál es la presión máxima de trabajo permitida para el acetileno libre por riesgo de descomposición explosiva?", "o": ["No usar el acetileno a presiones de más de 15 lb/pulg² (15 PSI) o 1.0 kg/cm²", "Hasta 50 PSI si el corte es grueso", "A 100 PSI para acelerar el corte", "No tiene límite de presión"], "c": 0}, {"p": "Punto 10: Purga individual de mangueras", "q": "¿Cuándo deben purgarse individualmente las mangueras de oxígeno y acetileno?", "o": ["Antes de encender el soplete y al terminar de utilizarlo (no dejarlo presurizado)", "Purgar ambas al mismo tiempo con la flama encendida", "Solo al final del año laboral", "Nunca se deben purgar las mangueras"], "c": 0}, {"p": "Punto 11: Ajuste de presión y mano a usar", "q": "¿Cómo se ajusta la presión en el regulador de oxicorte de forma segura?", "o": ["Usando la mano menos diestra, no parado de frente al tornillo de ajuste, cerrando la válvula en el soplete al terminar", "Parado de frente mirando fijamente la carátula con ambas manos", "Golpeando el tornillo con una llave de tuercas", "Apretando el tornillo al máximo con perico"], "c": 0}, {"p": "Punto 12: Encendido de flama", "q": "¿Qué gas se abre y enciende primero en la secuencia de encendido del soplete?", "o": ["Abrir un poco el acetileno y encender antes de abrir la válvula de oxígeno", "Abrir todo el oxígeno y luego encender el acetileno", "Abrir los dos gases al máximo y prenderlos juntos", "Prender un cerillo y luego abrir el oxígeno a presión"], "c": 0}, {"p": "Punto 13: Aceite y teflón con oxígeno", "q": "¿Por qué NUNCA se debe usar aceite o teflón en reguladores o equipos en contacto con oxígeno?", "o": ["Porque los hidrocarburos reaccionan violentamente con el oxígeno puro provocando ignición y explosión", "Porque el teflón descalibra los manómetros", "Porque el aceite enfría el gas", "Porque ensucia el soplete"], "c": 0}, {"p": "Punto 14: Almacenamiento de reguladores", "q": "¿Junto a qué materiales está prohibido guardar los reguladores de oxicorte?", "o": ["Nunca guardarlos junto con grasas, aceites o trapos contaminados con hidrocarburos", "En cajas metálicas limpias y secas", "En gavetas de herramientas de oxicorte identificadas", "En estantes secos libres de solventes"], "c": 0}, {"p": "Punto 15: Oxígeno como sustituto de aire", "q": "¿Cuál es la regla de oro sobre usar oxígeno para sopletear ropa, limpiar polvo o ventilar?", "o": ["ESTRICTAMENTE PROHIBIDO usar el oxígeno como sustituto de aire comprimido (riesgo mortal de incendio)", "Se permite para sacudirse el polvo del overol", "Se puede usar para refrescarse si hace calor", "Se permite para limpiar rebabas de la mesa"], "c": 0}, {"p": "Punto 16: Identificación por color y etiquetas", "q": "¿Qué criterio rige para no confundir cilindros de gases industriales?", "o": ["No confiar solo en el color; utilizar únicamente cilindros debidamente identificados con su etiqueta formal", "Pintar los cilindros de cualquier color disponible", "Oler el gas para saber cuál es antes de conectar", "Usar cilindros aunque no tengan etiqueta legible"], "c": 0}, {"p": "Punto 17: Despeje de materiales combustibles", "q": "¿A qué distancia mínima deben retirarse todos los materiales combustibles del área de oxicorte?", "o": ["Retirar todos los materiales que puedan arder a un radio mínimo de 15 metros", "A 1 metro de distancia", "A 3 metros si se cubre con cartón", "No es necesario retirar combustibles si hay agua cerca"], "c": 0}, {"p": "Punto 18: Intercambio de reguladores entre gases", "q": "¿Se puede utilizar un regulador de un gas para instalarse en otro tipo de gas?", "o": ["NO se debe utilizar un regulador para un gas distinto al especificado por el fabricante", "Sí, siempre que la tuerca apriete en la válvula", "Sí, usando adaptadores caseros de bronce", "Se permite intercambiar entre nitrógeno y acetileno"], "c": 0}, {"p": "Punto 19: Uso de mangueras sin regulador", "q": "¿Está permitido conectar una manguera de soplete directo a la válvula del cilindro sin regulador?", "o": ["NUNCA utilizar mangueras sin su respectivo regulador de presión", "Sí, si la válvula se abre solo un milímetro", "Sí, para calentar piezas muy grandes", "Solo en maniobras de emergencia"], "c": 0}, {"p": "Punto 20: Válvulas check y arrestaflamas", "q": "¿Cuántos arrestaflamas y válvulas check deben colocarse y en qué posiciones del sistema?", "o": ["Siempre usar válvulas check y arrestaflamas: uno a la salida del tanque y uno a la entrada del soplete en cada línea", "Solo un arrestaflamas en el soplete únicamente", "No se requieren si las mangueras son nuevas", "Solo uno en el tanque de oxígeno"], "c": 0}, {"p": "Punto 21: Capuchón tipo mariposa", "q": "¿Qué tipo de protección debe portar el cilindro en todo momento?", "o": ["Utilizar cilindros con capuchón tipo mariposa de protección de válvula en todo momento", "Usar cilindros sin capuchón para conectar más rápido", "Quitar el capuchón y tirarlo a la chatarra", "Usar capuchón de plástico roto"], "c": 0}, {"p": "Punto 22: Válvulas de cilindros vacíos", "q": "¿Cómo deben dejarse las válvulas de los cilindros vacíos una vez agotados?", "o": ["Cerrar firmemente las válvulas de los cilindros vacíos y colocar su capuchón", "Dejarlas abiertas para que salga todo el residuo", "Aflojar el vástago para ventilar el tanque", "Dejar los reguladores conectados al cilindro vacío"], "c": 0}, {"p": "Punto 23: Límite de temperatura para cilindros", "q": "¿A qué temperatura máxima crítica no deben exponerse jamás los cilindros de gas?", "o": ["No exponer los cilindros a temperaturas mayores a 51 °C (125 °F)", "A más de 100 °C", "No tienen límite de temperatura al sol", "A temperaturas superiores a 80 °C"], "c": 0}, {"p": "Punto 24: Herramienta de apriete adecuada", "q": "¿Qué herramienta debe utilizarse para apretar las conexiones del equipo de oxicorte?", "o": ["Usar llave española de la medida adecuada; PROHIBIDO usar perico, stilson o pinzas de presión", "Pinzas de presión (perras) para mayor torque", "Llave stilson para tubos pesados", "Golpear la tuerca con cincel"], "c": 0}, {"p": "Punto 25: Transporte de cilindros", "q": "¿Cómo deben transportarse siempre los cilindros de gas en la planta?", "o": ["Transportar siempre en carrito portacilindros, encadenados y con los reguladores previamente desmontados", "Rodando los tanques acostados sobre el suelo", "Cargados entre dos personas abrazados de las válvulas", "Arrastrados jalándolos de las mangueras"], "c": 0}, {"p": "Punto 26: Sujeción en pedestales o carritos", "q": "¿Cómo deben permanecer los cilindros en estaciones de trabajo fijas o móviles?", "o": ["Siempre sujetos apropiadamente con cadenas a pedestales, casetas o carritos; NUNCA sin encadenar", "Parados sueltos junto a las columnas", "Apoyados en ángulo contra la pared de la nave", "Acostados en el piso debajo del banco de trabajo"], "c": 0}, {"p": "Punto 27: Método de encendido de la flama", "q": "¿Cuál es el único método autorizado para encender la flama del soplete de oxicorte?", "o": ["SOLO encender la flama con chispero de cazuela; PROHIBIDO encendedor de gas, punto de soldadura o cerillos", "Encendedor desechable de gas butano", "Tocar una pieza al rojo vivo o arco de soldadura", "Fósforos o cerillos de madera"], "c": 0}, {"p": "Punto 28: Detección de fugas autorizada", "q": "¿Con qué producto químico autorizado debe inspeccionarse la ausencia de fugas en el equipo?", "o": ["Inspeccionar con el líquido detector autorizado para la actividad (Cantesco)", "Usar la flama del encendedor para ver si prende la fuga", "Usar agua con aceite vegetal", "Escuchar si sopla sin aplicar ningún producto"], "c": 0}, {"p": "Punto 29: Reporte de fallas en el encendido", "q": "¿Qué señales de alarma en el soplete deben reportarse de inmediato para no operarlo?", "o": ["Pequeñas explosiones (retrocesos), que se apague, exceso de humo negro o líquido negro en el mezclador", "Que la flama sea de color azul neutro", "Que el chispero produzca chispa abundante", "Que el manómetro marque la presión calibrada"], "c": 0}, {"p": "Punto 30: Manguera extendida y presurizada sin supervisión", "q": "¿Qué está prohibido respecto a la manguera y el tránsito de equipos móviles?", "o": ["No dejar la manguera extendida y presurizada sin supervisión ni expuesta al paso de vehículos", "Cruzar montacargas por encima de las mangueras presurizadas", "Dejar la manguera enrollada en su soporte", "Proteger la manguera con pasa cables de uso rudo"], "c": 0}, {"p": "Punto 31: Despresurización en ausencias", "q": "¿Qué debe hacerse con el equipo de oxicorte si queda solo o sin supervisión en el área?", "o": ["Despresurizar mangueras y cerrar firmemente las válvulas de los tanques", "Dejar el soplete con la flama piloto encendida", "Dejar las mangueras a 15 PSI de presión continua", "Ocultar el soplete debajo de una lona sin cerrar válvulas"], "c": 0}, {"p": "Punto 32: Cargas suspendidas sobre oxicorte", "q": "¿Cuál es la prohibición sobre maniobras de grúas e izajes cerca de equipos de oxicorte?", "o": ["NUNCA pasar una carga suspendida por encima de un equipo de oxiacetileno o sus cilindros", "Se permite izar placas sobre los cilindros si están encadenados", "Se autoriza el paso de cargas a más de 3 metros de altura", "Solo se prohíbe si el soplete está encendido"], "c": 0}, {"p": "Punto 33: Estado de componentes del sistema", "q": "¿Cuál es el criterio de uso para reguladores, manómetros y mangueras?", "o": ["Usar reguladores, manómetros y mangueras ÚNICAMENTE en óptimas condiciones de integridad", "Usar manómetros con carátula rota si la aguja aún se mueve", "Reparar fugas de manguera con cinta de aislar", "Usar reguladores sin perilla girándolos con pinzas"], "c": 0}, {"p": "Punto 34: Golpes o caídas de cilindros", "q": "¿Qué procedimiento aplica si un cilindro de gas sufre un golpe o caída accidental?", "o": ["No golpear cilindros y reportar cualquier caída inmediatamente, marcándolo con tarjeta de NO UTILIZAR", "Levantarlo rápido y conectarlo para ver si no explotó", "Golpearlo para enderezar el protector de la válvula", "Ignorar la caída si no se abrió la válvula"], "c": 0}, {"p": "Punto 35: Longitud máxima y añadiduras en mangueras", "q": "¿Qué especificaciones aplican para las mangueras de oxicorte respecto a añadiduras y longitud?", "o": ["PROHIBIDO mangueras con añadiduras o cinta de aislar y NO deben exceder de 15 metros de largo", "Mangueras de hasta 50 metros unidas con alambre", "Se permiten uniones con tubos de cobre y cinta gris", "No existe límite de longitud para mangueras"], "c": 0}, {"p": "Punto 36: Conexiones y abrazaderas mecánicas", "q": "¿Qué tipo de conexiones mecánicas están autorizadas para sujetar las mangueras a las espigas?", "o": ["Utilizar conexiones mecánicas originales con abrazaderas prensadas de fábrica; PROHIBIDO alambre o cinchos plásticos", "Amarrar las mangueras con alambre recocido de construcción", "Sujetar con cinchos de plástico de papelería", "Asegurar con cinta teflón únicamente"], "c": 0}, {"p": "Punto 37: EPP específico de oxicorte", "q": "¿Cuál es el equipo de protección personal específico requerido para la actividad de oxicorte?", "o": ["Casco, mica facial sombra 3, goggles, capucha, tapón auditivo, respirador para partículas, camisola y pantalón de mezclilla, chamarra, pantalón y guantes largos de carnaza, y botas", "Careta para soldar con sombra 12 y bata de tela ligera", "Lentes oscuros de sol comunes y guantes de látex", "Gafas de seguridad transparentes y playera corta"], "c": 0}]}, "vehicular": {"name": "Circulación Vehicular y Maquinaria (22 Puntos)", "questions": [{"p": "Punto 1: Licencias y entrenamiento", "q": "¿Qué requisitos legales y de capacitación debe acreditar el operador de vehículos y maquinaria en planta?", "o": ["Entrenamiento interno y Licencia Federal/estatal vigente para el tipo de equipo a operar", "Solo saber manejar transmisión manual", "Carta de recomendación familiar", "No requiere licencia si no sale a carretera"], "c": 0}, {"p": "Punto 2: Filtro de Seguridad Patrimonial", "q": "¿Qué aspectos del vehículo revisa Seguridad Patrimonial en el acceso (Puntos 2.1 a 2.10)?", "o": ["Luces delanteras, traseras, stop, reversa, direccionales, claxon, alarma de reversa, neumáticos, espejos, cero fugas, extintor y kit antiderrame", "Solo el color de la carrocería y la marca del estéreo", "Únicamente que el chofer traiga chaleco", "Que el tanque de gasolina esté lleno"], "c": 0}, {"p": "Punto 3: Inspección de maquinaria especializada", "q": "¿Qué documentación debe acreditar toda maquinaria especializada para su ingreso (Puntos 3.1 a 3.5)?", "o": ["Licencia del operador, DC-3 para el equipo, póliza de seguro vigente, bitácora de mantenimiento y Check List", "Factura original del equipo y recibo de luz", "Permiso de tránsito municipal únicamente", "Solo la identificación oficial del chofer"], "c": 0}, {"p": "Punto 4: Uso de calzas en transporte y grúas", "q": "¿Cuándo deben colocar obligatoriamente calzas o topes los vehículos de transporte y grúas?", "o": ["Cuando están en proceso de carga, descarga o maniobra de izaje para impedir su movimiento", "Solo cuando se estacionan por la noche", "Únicamente si la calle tiene bajada pronunciada", "No requieren calzas si tienen freno de mano"], "c": 0}, {"p": "Punto 5: Verificación previa con banderero", "q": "Antes de realizar cualquier movimiento vehicular, ¿quiénes deben verificar que no haya personas cerca?", "o": ["Primero el operador y el banderero aseguran que no hay personal laborando cerca de la unidad", "El guardia de seguridad desde la caseta lejana", "El chofer acelera confiando en los espejos", "Cualquier transeúnte de la banqueta"], "c": 0}, {"p": "Punto 6: Aseguramiento de cargas", "q": "¿Con qué elementos deben asegurarse todas las cargas transportadas?", "o": ["Eslingas con trinquetes, cadenas con gatas o ganchos, prensas, cuerdas y enlonados según la carga", "Sujetadas con cinta canela o rafia", "Apiladas sueltas confiando en su propio peso", "Con un solo mecate amarrado al escape"], "c": 0}, {"p": "Punto 8: Barreras rígidas de contención", "q": "¿Qué protección complementaria deben tener las cargas para evitar su caída en caso de falla del amarre?", "o": ["Barreras rígidas de contención como postes, redilas u otros elementos que no interfieran la maniobra", "Una lona delgada de plástico sin amarrar", "Colocar cinta amarilla alrededor de la batea", "No requieren barreras si van despacio"], "c": 0}, {"p": "Punto 9: Check List diario de transporte", "q": "¿Qué componentes críticos se deben incluir en el Check List diario del vehículo?", "o": ["Estado estructural, banco de baterías, puntos de anclaje y amarre, dirección y frenos", "Nivel del líquido limpiaparabrisas únicamente", "El aroma del ambientador de cabina", "La limpieza de los tapetes"], "c": 0}, {"p": "Punto 10: Distancia de seguridad en circulación", "q": "¿Qué distancia de seguridad mínima deben mantener todos los vehículos al circular por calles y avenidas de planta?", "o": ["Mantener 10 metros de distancia entre vehículos o entre vehículo y banderero", "2 metros de distancia", "50 centímetros pegado a la defensa", "1 metro de distancia"], "c": 0}, {"p": "Punto 11: Zonas de rampas de acceso", "q": "¿Cómo deben actuar los vehículos en las zonas de rampas de acceso a almacenes, naves y patios?", "o": ["Detenerse para permitir la entrada o salida de maquinaria y respetar estrictamente los acordonamientos perimetrales", "Acelerar para ganar el paso antes de que salga la grúa", "Tocar el claxon y aventar el vehículo", "Ignorar los acordonamientos si hay espacio"], "c": 0}, {"p": "Punto 12: Estancia en racks y madrinas", "q": "¿Está permitida la estancia de personal en áreas de racks y madrinas cuando hay maniobras con montacargas o transportes pesados?", "o": ["NO se permite la estancia de personal en áreas con racks o madrinas durante movimientos de maquinaria pesada", "Sí, si se colocan entre los racks para observar", "Se autoriza si portan chaleco reflejante", "Se permite caminar por en medio de los racks en movimiento"], "c": 0}, {"p": "Punto 13: Disciplina de ALTO y claxon en cebras", "q": "¿Cuál es la secuencia obligatoria de disciplina de ALTO en cada cruce peatonal de cebras?", "o": ["Alto total, tocar claxon para advertir, verificar despeje de vía y comunicar el paso al peatón detenido", "Tocar claxon y acelerar sin hacer alto", "Pasar despacio sin detenerse", "Hacer cambio de luces únicamente"], "c": 0}, {"p": "Punto 14: Prioridad del personal a pie", "q": "¿Cómo debe actuar el personal a pie frente a vehículos y maquinaria en circulación?", "o": ["Dar prioridad a vehículos/maquinaria, deteniéndose y esperando señal del operador para cruzar por cebras", "Cruzar corriendo intempestivamente frente al montacargas", "Caminar dándole la espalda al vehículo", "Ignorar las cebras y cruzar en diagonal"], "c": 0}, {"p": "Punto 15: Ganar el paso a maquinaria", "q": "¿Cuál es la regla de oro respecto a intentar ganarle el paso a un vehículo o equipo móvil?", "o": ["NUNCA intentes ganar el paso a los vehículos, equipos y maquinaria pesada", "Se puede correr si faltan menos de 3 metros", "Hacerle señas con la mano para que frene en seco", "Acelerar el paso sin voltear a ver"], "c": 0}, {"p": "Punto 16: Teléfono celular al volante", "q": "¿Cuál es la prohibición sobre el uso del teléfono celular mientras se opera un vehículo o maquinaria?", "o": ["NUNCA uses el teléfono celular cuando operas vehículos, equipos o maquinaria (cero llamadas/mensajes)", "Se permite si se usa altavoz o manos libres", "Se permite para revisar mensajes en los topes", "Se autoriza responder llamadas breves"], "c": 0}, {"p": "Punto 17: Notificaciones al supervisor", "q": "¿Qué incidentes o condiciones vehiculares deben notificarse de forma inmediata al supervisor?", "o": ["Anomalías del Check List, peligros detectados, choques, fugas, conatos de fuego, ponchaduras y mejoras", "Solo si el vehículo queda completamente inservible", "Únicamente si hay lesionados graves", "Al cabo de 15 días hábiles"], "c": 0}, {"p": "Punto 18: Torreta portátil en madrinas y cargas largas", "q": "¿Qué dispositivo luminoso de advertencia debe colocarse en madrinas de ensambles mayores y partes largas?", "o": ["Colocar obligatoriamente la torreta portátil para advertir del paso de carga larga durante maniobras", "Una linterna de mano común apagada", "Un trapo rojo amarrado con alambre", "No se requiere luz si es de día"], "c": 0}, {"p": "Punto 19: Velocidad máxima de circulación", "q": "¿Cuál es el límite de velocidad máxima permitida para circular en los patios y calles de la planta?", "o": ["Máximo 10 km/h o la velocidad de marcha del banderero a pie", "30 km/h en avenidas principales", "20 km/h en zonas de almacén", "50 km/h si no hay peatones a la vista"], "c": 0}, {"p": "Punto 20: Convivencia con barredoras industriales", "q": "¿Cómo deben convivir los vehículos con las barredoras viales en la planta?", "o": ["Son unidades de baja velocidad; todos los demás vehículos deben darles tiempo de paso ordenado", "Rebasarlas a alta velocidad pegado a sus cepillos", "Tocarles el claxon continuamente para que se quiten", "Cerrarles el paso en las curvas"], "c": 0}, {"p": "Punto 21: Protocolo ante emergencia en planta", "q": "¿Qué debe hacer un conductor en planta ante una alarma de emergencia general o evacuación?", "o": ["Detener la unidad en un punto seguro, apagarla, ceder paso a vehículos de emergencia y marchar al punto de reunión", "Acelerar hacia la puerta de salida para ganar la salida vehicular", "Dejar el camión encendido en medio del camino principal", "Permanecer encerrado dentro de la cabina con aire acondicionado"], "c": 0}, {"p": "Diagrama Flujo: Permanencia en cabina", "q": "Durante las maniobras de carga y descarga de un tractocamión, ¿puede el chofer quedarse en la cabina?", "o": ["NO podrá permanecer en la cabina durante las maniobras; debe descender con su EPP completo", "Sí, siempre que cierre las ventanillas", "Sí, si se acuesta en el camarote", "Se permite si firma una responsiva"], "c": 0}, {"p": "Diagrama Flujo: Calzas y conos por tracto", "q": "¿Cuántas calzas y conos debe colocar obligatoriamente el operador en el lugar de carga/descarga?", "o": ["Colocar sus 2 calzas para ruedas y sus 2 conos de advertencia", "Solo 1 calza en la llanta delantera", "Un solo cono en la defensa", "No se requieren conos si el camión es blanco"], "c": 0}]}, "loto": {"name": "Metodología LOTO - Candadeo y Etiquetado (15 Puntos)", "questions": [{"p": "Punto 1: Capacitación y periodicidad", "q": "¿Qué capacitación debe tener el personal que aplica LOTO y cada cuánto tiempo debe actualizarse?", "o": ["Entrenamiento interno o DC-3 por capacitador externo, con actualizaciones obligatorias cada 12 meses", "Curso de inducción general cada 5 años", "No requiere actualización si ya tiene experiencia previa", "Solo una plática de 5 minutos al ingresar"], "c": 0}, {"p": "Punto 2: Obligatoriedad de LOTO", "q": "¿En qué trabajos es de aplicación obligatoria la metodología de control de energías LOTO?", "o": ["En todos los trabajos donde se ven involucradas energías para la operación de equipos, maquinarias e instalaciones", "Solo en voltajes superiores a 440V", "Únicamente si la máquina está en garantía", "Solo durante paros de planta programados anuales"], "c": 0}, {"p": "Punto 3: Los 7 Pasos para colocar LOTO", "q": "¿Cuál es la secuencia oficial de los 7 pasos para la colocación de LOTO?", "o": ["I) Notificar, II) Revisar Placard, III) Localizar paros, IV) Apagar/aislar controles, V) Bloqueo y etiquetado, VI) Liberar energía residual, VII) Verificar energía cero", "I) Apagar, II) Quitar guardas, III) Trabajar, IV) Poner candado, V) Encender", "I) Cortar cables, II) Desarmar, III) Poner cinta, IV) Notificar", "I) Poner tarjeta, II) Verificar energía cero, III) Avisar al final"], "c": 0}, {"p": "Punto 4: Casos de aplicación de LOTO", "q": "¿En cuáles de las siguientes situaciones operativas es obligatorio aplicar LOTO?", "o": ["Mantenimiento, instalación, inspección, limpieza, modificación, destrabar, retirar guardas o meter partes del cuerpo a la máquina", "Únicamente cuando se cambie un motor completo", "Solo para pintar el chasis exterior de la máquina", "Cuando el operador va al sanitario"], "c": 0}, {"p": "Punto 5: Dotación personal de LOTO", "q": "¿Qué equipo personal e intransferible debe poseer cada trabajador autorizado en LOTO?", "o": ["Candado propio, llave única y tarjeta de identificación personalizada", "Un candado de combinación de 4 números", "Un candado común cuya llave la tenga el supervisor", "Solo una etiqueta de papel sin candado"], "c": 0}, {"p": "Punto 6: Dispositivo de bloqueo adecuado", "q": "¿Qué criterio rige al seleccionar el dispositivo de bloqueo (aldaba, bloqueo de válvula, interruptor)?", "o": ["Seleccionar el dispositivo de bloqueo adecuado y certificado para el equipo específico instalado", "Usar cualquier alambre o cincho que impida mover la palanca", "Colocar cinta adhesiva sobre el botón", "Amarrar con una cadena rota de grúa"], "c": 0}, {"p": "Punto 7: Verificación con Mantenimiento y energía cero", "q": "Al intervenir una máquina compleja, ¿cómo se asegura el interruptor o válvula correcta?", "o": ["En colaboración con mantenimiento; identificar interruptor/válvula y realizar pruebas hasta asegurar energía cero", "Bajar el interruptor que parezca más cercano al azar", "Pedirle a un compañero que opere la máquina mientras metes la mano", "Confiar en el ruido de los motores"], "c": 0}, {"p": "Punto 8: Tipos de energía a considerar", "q": "¿Cuáles son las formas de energía que deben considerarse en el análisis de riesgo LOTO?", "o": ["Eléctrica, mecánica, neumática, hidráulica, química, térmica, gravitacional, radiación y luminosa", "Únicamente la energía eléctrica", "Solo gas y agua potable", "Energía eólica y solar exclusivamente"], "c": 0}, {"p": "Punto 9: Regla de cuadrilla y custodia de llaves", "q": "Cuando varios trabajadores forman una cuadrilla de trabajo, ¿cómo se gestionan los candados y llaves?", "o": ["Cada persona coloca su propio candado y resguarda su llave; NO se transfiere el control de llaves entre compañeros", "El líder de cuadrilla se queda con todas las llaves", "Se coloca un solo candado en representación de todo el grupo", "Se dejan las llaves puestas en los candados del tablero"], "c": 0}, {"p": "Punto 11: Prohibición de llaves maestras", "q": "¿Cuál es la directriz sobre el uso de llaves maestras en series de candados LOTO?", "o": ["NUNCA usar llaves maestras ni versiones de llave única para series de candados de seguridad", "Se permite llave maestra para que el supervisor abra cuando quiera", "Se recomienda llave maestra para ahorrar tiempo en emergencias", "Es opcional según el tipo de candado"], "c": 0}, {"p": "Punto 12: Prohibición de bloqueos improvisados", "q": "¿Qué elementos están expresamente prohibidos para realizar bloqueos de energía?", "o": ["Candados de herrería, cintas adhesivas, alambres, cables, clavos, chavetas o sujetacables improvisados", "Aldabas de bloqueo múltiple dieléctricas certificadas", "Bloqueadores de disyuntores de nylon reforzado", "Candados de seguridad normalizados con llave retenible"], "c": 0}, {"p": "Punto 13: Retiro de candados ajenos", "q": "¿Puede un empleado retirar el candado de seguridad de otro compañero de trabajo?", "o": ["NINGÚN empleado puede quitar candados de otra persona", "Sí, si el compañero se fue a comer y dejó su candado", "Sí, cualquier compañero de su misma categoría", "Sí, si se utiliza una cizalla sin avisar"], "c": 0}, {"p": "Punto 14: Quién debe retirar el candado", "q": "¿Quién es la única persona que debe retirar el candado y bloqueo colocado?", "o": ["Solo debe ser quitado por el empleado que lo colocó, tras completar el trabajo, o repuesto por el nuevo turno", "Cualquier persona del turno entrante que encuentre la máquina apagada", "El guardia de seguridad en su rondín nocturno", "El operador de grúa viajera"], "c": 0}, {"p": "Punto 15: Procedimiento de remoción de candado por ausencia", "q": "¿Cuál es el protocolo formal para remover el candado de una persona ausente (Pasos a-f)?", "o": ["Verificar ausencia, esfuerzo razonable por localizarlo, evaluar seguridad del equipo, retiro seguro, documentar y notificar al empleado ANTES de reasumir", "Cortar el candado de inmediato sin avisar y poner a trabajar la máquina", "Pedirle a un cerrajero que abra el candado sin registro", "Esperar a que el trabajador regrese aunque pasen tres meses"], "c": 0}, {"p": "Punto 16: Pasos para retirar LOTO al terminar", "q": "¿Cuáles son los 5 pasos obligatorios para retirar LOTO y reactivar el equipo?", "o": ["a) Revisar máquina despejada, b) Revisar sin personal, c) Controles en neutral y guardas puestas, d) Retirar candados, e) Notificar uso", "a) Encender máquina, b) Quitar candados, c) Salir corriendo, d) Avisar", "a) Cortar cables, b) Dejar herramientas adentro, c) Quitar candados", "a) Retirar candados únicamente sin revisar guardas"], "c": 0}]}};
+
+  // BASE DE DATOS LOCAL
+  const STORAGE_KEY = "GSR_SAFETY_EVAL_DB";
+
+  function getDB() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.error("Error al leer base de datos local:", e);
+      return [];
+    }
+  }
+
+  function saveDB(records) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      updateBadgeCount();
+    } catch (e) {
+      console.error("Error al guardar en base de datos local:", e);
+    }
+  }
+
+  function updateBadgeCount() {
+    const count = getDB().length;
+    document.getElementById("badgeCount").textContent = count;
+  }
+
+  // Inicializar selectores y estado
+  window.onload = function() {
+    const selector = document.getElementById("protocolSelect");
+    selector.innerHTML = "";
+    for (const [key, data] of Object.entries(QUESTION_BANK)) {
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = `${data.name} (${data.questions.length} reactivos en banco)`;
+      selector.appendChild(opt);
+    }
+    
+    // Fecha actual
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("evalDate").value = today;
+
+    updateBadgeCount();
+  };
+
+  // Control de Pestañas
+  function switchTab(tabName) {
+    document.getElementById("view-quiz").style.display = tabName === "quiz" ? "block" : "none";
+    document.getElementById("view-dashboard").style.display = tabName === "dashboard" ? "block" : "none";
+    document.getElementById("view-history").style.display = tabName === "history" ? "block" : "none";
+
+    document.getElementById("tabQuizBtn").className = "tab-btn " + (tabName === "quiz" ? "active" : "");
+    document.getElementById("tabDashBtn").className = "tab-btn " + (tabName === "dashboard" ? "active" : "");
+    document.getElementById("tabHistBtn").className = "tab-btn " + (tabName === "history" ? "active" : "");
+
+    if (tabName === "dashboard") {
+      populateDashboardFilters();
+      renderDashboardCharts();
+    } else if (tabName === "history") {
+      renderHistoryTable();
+    }
+  }
+
+  // Barajador Fisher-Yates
+  function shuffle(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  let activeQuizQuestions = [];
+  let currentProtocolKey = "";
+  let currentWorkerInfo = {};
+
+  function startEvaluation() {
+    const name = document.getElementById("workerName").value.trim();
+    const id = document.getElementById("workerId").value.trim();
+    const area = document.getElementById("workerArea").value.trim();
+    const role = document.getElementById("workerRole").value.trim();
+    const date = document.getElementById("evalDate").value;
+    const protocolKey = document.getElementById("protocolSelect").value;
+
+    if (!name || !id || !area || !role || !date) {
+      alert("Por favor llena todos los campos de información del trabajador antes de iniciar.");
+      return;
+    }
+
+    currentWorkerInfo = { name, id, area, role, date };
+    currentProtocolKey = protocolKey;
+    const protocol = QUESTION_BANK[protocolKey];
+
+    // Extraer 10 preguntas al azar
+    const shuffledBank = shuffle(protocol.questions);
+    const count = Math.min(10, shuffledBank.length);
+    const selectedTen = shuffledBank.slice(0, count);
+
+    // Barajar opciones
+    activeQuizQuestions = selectedTen.map(item => {
+      const indexedOpts = item.o.map((text, idx) => ({ text, isCorrect: idx === item.c }));
+      const shuffledOpts = shuffle(indexedOpts);
+      return {
+        p: item.p,
+        q: item.q,
+        options: shuffledOpts
+      };
+    });
+
+    // Renderizar preguntas
+    const container = document.getElementById("questions-container");
+    container.innerHTML = "";
+    document.getElementById("quiz-title").innerHTML = `<span>📝</span> Evaluación: ${protocol.name} (10 Preguntas Seleccionadas al Azar)`;
+
+    activeQuizQuestions.forEach((qObj, qIdx) => {
+      const card = document.createElement("div");
+      card.className = "question-card";
+
+      let optionsMarkup = "";
+      qObj.options.forEach((opt, optIdx) => {
+        const inpId = `q_${qIdx}_opt_${optIdx}`;
+        optionsMarkup += `
+          <label class="option-label" for="${inpId}">
+            <input type="radio" id="${inpId}" name="question_${qIdx}" value="${optIdx}">
+            <span>${opt.text}</span>
+          </label>
+        `;
+      });
+
+      card.innerHTML = `
+        <div class="question-header">
+          <span class="q-number">Pregunta ${qIdx + 1} de ${activeQuizQuestions.length}</span>
+          <span class="q-point">${qObj.p}</span>
+        </div>
+        <div class="question-text">${qObj.q}</div>
+        <div class="options-group">${optionsMarkup}</div>
+      `;
+      container.appendChild(card);
+    });
+
+    document.getElementById("setup-section").style.display = "none";
+    document.getElementById("quiz-section").style.display = "block";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function submitEvaluation() {
+    let answered = 0;
+    const choices = [];
+
+    activeQuizQuestions.forEach((q, idx) => {
+      const selected = document.querySelector(`input[name="question_${idx}"]:checked`);
+      if (selected) {
+        answered++;
+        choices.push(parseInt(selected.value, 10));
+      } else {
+        choices.push(null);
+      }
+    });
+
+    if (answered < activeQuizQuestions.length) {
+      const confirmSend = confirm(`Has respondido ${answered} de ${activeQuizQuestions.length} preguntas. ¿Deseas calificar con preguntas sin contestar (se tomarán como incorrectas)?`);
+      if (!confirmSend) return;
+    }
+
+    let score = 0;
+    const breakdown = [];
+
+    activeQuizQuestions.forEach((q, idx) => {
+      const choiceIdx = choices[idx];
+      const isRight = choiceIdx !== null && q.options[choiceIdx].isCorrect;
+      if (isRight) score++;
+
+      const userText = choiceIdx !== null ? q.options[choiceIdx].text : "<em>Sin respuesta</em>";
+      const correctObj = q.options.find(o => o.isCorrect);
+
+      breakdown.push({
+        num: idx + 1,
+        point: q.p,
+        question: q.q,
+        userAnswer: userText,
+        isRight: isRight,
+        correctText: correctObj ? correctObj.text : ""
+      });
+    });
+
+    const percent = Math.round((score / activeQuizQuestions.length) * 100);
+    const approved = percent >= 80;
+
+    // GUARDAR EN BASE DE DATOS LOCAL
+    const record = {
+      id: Date.now(),
+      fecha: currentWorkerInfo.date,
+      nombre: currentWorkerInfo.nombre || currentWorkerInfo.name,
+      matricula: currentWorkerInfo.id,
+      area: currentWorkerInfo.area,
+      puesto: currentWorkerInfo.role,
+      protocoloKey: currentProtocolKey,
+      protocoloNombre: QUESTION_BANK[currentProtocolKey].name,
+      calificacion: percent,
+      aciertos: score,
+      total: activeQuizQuestions.length,
+      estatus: approved ? "COMPETENTE" : "NO ACREDITADO"
+    };
+
+    const currentDB = getDB();
+    currentDB.unshift(record);
+    saveDB(currentDB);
+
+    // Pintar resultados
+    document.getElementById("scorePercent").textContent = `${percent}%`;
+    document.getElementById("scoreVerdict").textContent = approved ? "COMPETENTE" : "NO ACREDITADO";
+    const circle = document.getElementById("scoreCircle");
+    circle.className = `score-circle ${approved ? 'score-approved' : 'score-failed'}`;
+
+    document.getElementById("workerSummary").innerHTML = `
+      <strong>Colaborador:</strong> ${currentWorkerInfo.name} &nbsp;|&nbsp; <strong>Nómina:</strong> ${currentWorkerInfo.id}<br>
+      <strong>Área:</strong> ${currentWorkerInfo.area} &nbsp;|&nbsp; <strong>Puesto:</strong> ${currentWorkerInfo.role}<br>
+      <strong>Protocolo Evaluado:</strong> ${QUESTION_BANK[currentProtocolKey].name}<br>
+      <strong>Fecha:</strong> ${currentWorkerInfo.date} &nbsp;|&nbsp; <strong>Aciertos:</strong> ${score} / ${activeQuizQuestions.length} (<strong>${percent}% de conocimiento</strong>)<br>
+      <span style="color:var(--success); font-weight:700;">💾 Registro guardado en la Base de Datos Local correctamente.</span>
+    `;
+
+    const tbody = document.getElementById("breakdownBody");
+    tbody.innerHTML = "";
+    breakdown.forEach(item => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${item.num}</strong></td>
+        <td><strong style="color:var(--secondary); font-size:0.8rem;">${item.point}</strong></td>
+        <td>${item.question}</td>
+        <td>
+          ${item.userAnswer}
+          ${!item.isRight ? `<br><small style="color:var(--success);"><strong>Correcta:</strong> ${item.correctText}</small>` : ''}
+        </td>
+        <td>
+          <span class="badge ${item.isRight ? 'badge-success' : 'badge-danger'}">
+            ${item.isRight ? 'CORRECTO (+10%)' : 'INCORRECTO (0%)'}
+          </span>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("quiz-section").style.display = "none";
+    document.getElementById("results-section").style.display = "block";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function resetApp() {
+    document.getElementById("results-section").style.display = "none";
+    document.getElementById("quiz-section").style.display = "none";
+    document.getElementById("setup-section").style.display = "block";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ==========================================
+  // DASHBOARD Y ESTADÍSTICAS (CHART.JS)
+  // ==========================================
+  let chartPassFailInstance = null;
+  let chartByAreaInstance = null;
+  let chartByProtocolInstance = null;
+  let chartByRoleInstance = null;
+
+  function populateDashboardFilters() {
+    const db = getDB();
+    const protocolFilter = document.getElementById("filterProtocol");
+    const areaFilter = document.getElementById("filterArea");
+
+    // Llenar protocolos
+    const currentP = protocolFilter.value;
+    protocolFilter.innerHTML = '<option value="ALL">Todos los Protocolos</option>';
+    for (const [k, d] of Object.entries(QUESTION_BANK)) {
+      const opt = document.createElement("option");
+      opt.value = k;
+      opt.textContent = d.name;
+      protocolFilter.appendChild(opt);
+    }
+    protocolFilter.value = currentP || "ALL";
+
+    // Llenar áreas únicas
+    const currentA = areaFilter.value;
+    const areas = [...new Set(db.map(r => r.area.trim()))].filter(Boolean).sort();
+    areaFilter.innerHTML = '<option value="ALL">Todas las Áreas / Naves</option>';
+    areas.forEach(a => {
+      const opt = document.createElement("option");
+      opt.value = a;
+      opt.textContent = a;
+      areaFilter.appendChild(opt);
+    });
+    areaFilter.value = currentA || "ALL";
+  }
+
+  function resetFilters() {
+    document.getElementById("filterProtocol").value = "ALL";
+    document.getElementById("filterArea").value = "ALL";
+    renderDashboardCharts();
+  }
+
+  function renderDashboardCharts() {
+    const allRecords = getDB();
+    const selProtocol = document.getElementById("filterProtocol").value;
+    const selArea = document.getElementById("filterArea").value;
+
+    // Filtrar registros
+    const filtered = allRecords.filter(r => {
+      const matchP = selProtocol === "ALL" || r.protocoloKey === selProtocol;
+      const matchA = selArea === "ALL" || r.area.trim().toLowerCase() === selArea.trim().toLowerCase();
+      return matchP && matchA;
+    });
+
+    // 1. KPIs
+    const total = filtered.length;
+    document.getElementById("kpiTotal").textContent = total;
+
+    if (total === 0) {
+      document.getElementById("kpiAvgScore").textContent = "0%";
+      document.getElementById("kpiPassRate").textContent = "0%";
+      document.getElementById("kpiPassDetail").textContent = "0 aprobados de 0";
+      document.getElementById("kpiWeakProtocol").textContent = "N/A";
+      document.getElementById("kpiWeakScore").textContent = "Sin datos registrados";
+      destroyAllCharts();
+      return;
+    }
+
+    const totalScore = filtered.reduce((acc, r) => acc + r.calificacion, 0);
+    const avgScore = Math.round(totalScore / total);
+    document.getElementById("kpiAvgScore").textContent = `${avgScore}%`;
+
+    const passed = filtered.filter(r => r.calificacion >= 80).length;
+    const passRate = Math.round((passed / total) * 100);
+    document.getElementById("kpiPassRate").textContent = `${passRate}%`;
+    document.getElementById("kpiPassDetail").textContent = `${passed} aprobados de ${total}`;
+
+    // Protocolo más bajo
+    const protoGroups = {};
+    filtered.forEach(r => {
+      if (!protoGroups[r.protocoloNombre]) protoGroups[r.protocoloNombre] = [];
+      protoGroups[r.protocoloNombre].push(r.calificacion);
+    });
+    let lowestP = "N/A";
+    let lowestAvg = 101;
+    for (const [pName, scores] of Object.entries(protoGroups)) {
+      const pAvg = scores.reduce((a, b) => a + b, 0) / scores.length;
+      if (pAvg < lowestAvg) {
+        lowestAvg = pAvg;
+        lowestP = pName;
+      }
+    }
+    document.getElementById("kpiWeakProtocol").textContent = lowestP.length > 25 ? lowestP.substring(0, 22) + "..." : lowestP;
+    document.getElementById("kpiWeakScore").textContent = `Promedio de ${Math.round(lowestAvg)}%`;
+
+    // 2. Gráfico 1: Aprobados vs No Acreditados (Doughnut)
+    destroyChart(chartPassFailInstance);
+    const ctx1 = document.getElementById("chartPassFail").getContext("2d");
+    chartPassFailInstance = new Chart(ctx1, {
+      type: 'doughnut',
+      data: {
+        labels: ['Competente (≥80%)', 'No Acreditado (<80%)'],
+        datasets: [{
+          data: [passed, total - passed],
+          backgroundColor: ['#15803d', '#dc2626'],
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+
+    // 3. Gráfico 2: Promedio por Área (Bar)
+    const areaScores = {};
+    filtered.forEach(r => {
+      const a = r.area.trim();
+      if (!areaScores[a]) areaScores[a] = [];
+      areaScores[a].push(r.calificacion);
+    });
+    const areaLabels = Object.keys(areaScores);
+    const areaData = areaLabels.map(a => Math.round(areaScores[a].reduce((x, y) => x + y, 0) / areaScores[a].length));
+
+    destroyChart(chartByAreaInstance);
+    const ctx2 = document.getElementById("chartByArea").getContext("2d");
+    chartByAreaInstance = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: areaLabels,
+        datasets: [{
+          label: 'Promedio de Conocimiento (%)',
+          data: areaData,
+          backgroundColor: '#0284c7',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, max: 100 }
+        }
+      }
+    });
+
+    // 4. Gráfico 3: Conocimiento por Protocolo (Horizontal Bar)
+    const protoLabels = Object.keys(protoGroups).map(n => n.length > 30 ? n.substring(0, 28) + ".." : n);
+    const protoData = Object.keys(protoGroups).map(k => Math.round(protoGroups[k].reduce((x, y) => x + y, 0) / protoGroups[k].length));
+
+    destroyChart(chartByProtocolInstance);
+    const ctx3 = document.getElementById("chartByProtocol").getContext("2d");
+    chartByProtocolInstance = new Chart(ctx3, {
+      type: 'bar',
+      data: {
+        labels: protoLabels,
+        datasets: [{
+          label: 'Nivel Promedio (%)',
+          data: protoData,
+          backgroundColor: protoData.map(v => v >= 80 ? '#16a34a' : '#ea580c'),
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { beginAtZero: true, max: 100 }
+        }
+      }
+    });
+
+    // 5. Gráfico 4: Desempeño por Puesto (Bar)
+    const roleScores = {};
+    filtered.forEach(r => {
+      const rol = r.puesto.trim();
+      if (!roleScores[rol]) roleScores[rol] = [];
+      roleScores[rol].push(r.calificacion);
+    });
+    const roleLabels = Object.keys(roleScores);
+    const roleData = roleLabels.map(rol => Math.round(roleScores[rol].reduce((x, y) => x + y, 0) / roleScores[rol].length));
+
+    destroyChart(chartByRoleInstance);
+    const ctx4 = document.getElementById("chartByRole").getContext("2d");
+    chartByRoleInstance = new Chart(ctx4, {
+      type: 'bar',
+      data: {
+        labels: roleLabels,
+        datasets: [{
+          label: 'Promedio (%)',
+          data: roleData,
+          backgroundColor: '#d97706',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, max: 100 }
+        }
+      }
+    });
+  }
+
+  function destroyChart(chart) {
+    if (chart) chart.destroy();
+  }
+
+  function destroyAllCharts() {
+    destroyChart(chartPassFailInstance);
+    destroyChart(chartByAreaInstance);
+    destroyChart(chartByProtocolInstance);
+    destroyChart(chartByRoleInstance);
+  }
+
+  // ==========================================
+  // HISTORIAL Y BASE DE DATOS
+  // ==========================================
+  function renderHistoryTable() {
+    const db = getDB();
+    const tbody = document.getElementById("historyTableBody");
+    tbody.innerHTML = "";
+
+    if (db.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:var(--text-muted);">No hay evaluaciones registradas aún. Realiza una evaluación para ver datos aquí.</td></tr>';
+      return;
+    }
+
+    db.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.fecha}</td>
+        <td><strong>${r.nombre}</strong></td>
+        <td>${r.matricula}</td>
+        <td>${r.area}</td>
+        <td>${r.puesto}</td>
+        <td><small>${r.protocoloNombre}</small></td>
+        <td><strong>${r.calificacion}%</strong> (${r.aciertos}/${r.total})</td>
+        <td>
+          <span class="badge ${r.calificacion >= 80 ? 'badge-success' : 'badge-danger'}">
+            ${r.estatus}
+          </span>
+        </td>
+        <td>
+          <button class="btn-sm-del" onclick="deleteRecord(${r.id})">Eliminar</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function deleteRecord(id) {
+    if (confirm("¿Estás seguro de eliminar este registro de evaluación?")) {
+      const db = getDB().filter(r => r.id !== id);
+      saveDB(db);
+      renderHistoryTable();
+    }
+  }
+
+  function filterHistoryTable() {
+    const query = document.getElementById("historySearch").value.toLowerCase();
+    const rows = document.querySelectorAll("#historyTableBody tr");
+    rows.forEach(r => {
+      const text = r.textContent.toLowerCase();
+      r.style.display = text.includes(query) ? "" : "none";
+    });
+  }
+
+  function clearAllData() {
+    const count = getDB().length;
+    if (count === 0) {
+      alert("La base de datos ya está vacía.");
+      return;
+    }
+    if (confirm(`⚠️ ATENCIÓN: Se eliminarán las ${count} evaluaciones registradas. ¿Deseas continuar?`)) {
+      localStorage.removeItem(STORAGE_KEY);
+      updateBadgeCount();
+      renderHistoryTable();
+      alert("Base de datos reiniciada correctamente.");
+    }
+  }
+
+  // Exportar a Excel (CSV con UTF-8 BOM para caracteres en español)
+  function exportToCSV() {
+    const db = getDB();
+    if (db.length === 0) {
+      alert("No hay registros en la base de datos para exportar.");
+      return;
+    }
+
+    const headers = ["Fecha", "Nombre", "Matricula", "Area", "Puesto", "Protocolo", "Calificacion(%)", "Aciertos", "Total_Preguntas", "Estatus"];
+    const rows = db.map(r => [
+      `"${r.fecha}"`,
+      `"${r.nombre.replace(/"/g, '""')}"`,
+      `"${r.matricula}"`,
+      `"${r.area.replace(/"/g, '""')}"`,
+      `"${r.puesto.replace(/"/g, '""')}"`,
+      `"${r.protocoloNombre.replace(/"/g, '""')}"`,
+      r.calificacion,
+      r.aciertos,
+      r.total,
+      `"${r.estatus}"`
+    ]);
+
+    let csvContent = "\uFEFF" + headers.join(";") + "\n";
+    rows.forEach(row => {
+      csvContent += row.join(";") + "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Reporte_Evaluaciones_Seguridad_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Respaldo JSON (exportar/importar entre equipos)
+  function exportBackupJSON() {
+    const db = getDB();
+    if (db.length === 0) {
+      alert("No hay datos para respaldar.");
+      return;
+    }
+    const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Respaldo_Evaluaciones_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importBackupJSON() {
+    document.getElementById("importFileInput").click();
+  }
+
+  function handleFileImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const imported = JSON.parse(e.target.result);
+        if (!Array.isArray(imported)) throw new Error("Formato no válido");
+
+        const current = getDB();
+        // Fusionar por id evitando duplicados
+        const ids = new Set(current.map(r => r.id));
+        let added = 0;
+        imported.forEach(item => {
+          if (!ids.has(item.id)) {
+            current.push(item);
+            added++;
+          }
+        });
+
+        saveDB(current);
+        alert(`Se importaron exitosamente ${added} registros nuevos a la base de datos.`);
+        renderHistoryTable();
+      } catch (err) {
+        alert("El archivo seleccionado no es un respaldo JSON válido.");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  }
+</script>
+
+</body>
+</html>
