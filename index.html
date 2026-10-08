@@ -584,12 +584,20 @@
           <input type="text" id="workerId" placeholder="Ej. 104592" required>
         </div>
         <div class="form-group">
-          <label for="workerArea">Área / Nave Operativa</label>
-          <input type="text" id="workerArea" placeholder="Ej. Nave 2 - Armado de Carros" required>
+          <label for="workerAreaSelect">Área y/o Nave</label>
+          <select id="workerAreaSelect" onchange="toggleOtroArea()" required>
+            <option value="" disabled selected>-- Selecciona Área y/o Nave --</option>
+            <option value="Nave 1">Nave 1</option><option value="Nave 2">Nave 2</option><option value="Nave 3">Nave 3</option><option value="Nave 4">Nave 4</option><option value="Nave 5">Nave 5</option><option value="Nave 6">Nave 6</option><option value="Trucks">Trucks</option><option value="Fase 1 Linea 4">Fase 1 Linea 4</option><option value="Fase 1 Linea 5">Fase 1 Linea 5</option><option value="Fase 1 Linea 6">Fase 1 Linea 6</option><option value="Fase 2">Fase 2</option><option value="Fase 3">Fase 3</option><option value="Side Business">Side Business</option><option value="Calidad">Calidad</option><option value="Compras">Compras</option><option value="HSE">HSE</option><option value="RH">RH</option><option value="Ingenieria / Industrial">Ingenieria / Industrial</option><option value="Finanzas">Finanzas</option><option value="Proyectos">Proyectos</option><option value="Oficinas">Oficinas</option><option value="Generales">Generales</option><option value="IT">IT</option><option value="Buy Off">Buy Off</option><option value="Proveedores / Contratistas">Proveedores / Contratistas</option><option value="Dirección">Dirección</option><option value="Patrimonial">Patrimonial</option><option value="Almacen / Materiales">Almacen / Materiales</option><option value="Maniobras">Maniobras</option><option value="Sindicato">Sindicato</option><option value="FMP">FMP</option><option value="Otro">Otro</option>
+          </select>
+          <input type="text" id="workerAreaCustom" placeholder="Especifica tu área..." style="display: none; margin-top: 6px;">
         </div>
         <div class="form-group">
-          <label for="workerRole">Puesto de Trabajo</label>
-          <input type="text" id="workerRole" placeholder="Ej. Soldador / Operador de Grúa" required>
+          <label for="workerRoleSelect">Puesto de Trabajo</label>
+          <select id="workerRoleSelect" onchange="toggleOtroPuesto()" required>
+            <option value="" disabled selected>-- Selecciona Puesto --</option>
+            <option value="Soldador">Soldador</option><option value="Pintor">Pintor</option><option value="Operador">Operador</option><option value="Técnico">Técnico</option><option value="Ingeniero">Ingeniero</option><option value="Instructor">Instructor</option><option value="Administrativo">Administrativo</option><option value="Análista">Análista</option><option value="Supervisor">Supervisor</option><option value="Jefe">Jefe</option><option value="Coordinador">Coordinador</option><option value="Gerente">Gerente</option><option value="Ayudante General">Ayudante General</option><option value="Almacenista">Almacenista</option><option value="Montacarguista">Montacarguista</option><option value="Inspector">Inspector</option><option value="Gruista">Gruista</option><option value="Auxiliar">Auxiliar</option><option value="Residente">Residente</option><option value="Chofer">Chofer</option><option value="Guardia">Guardia</option><option value="Recepcionista">Recepcionista</option><option value="Enfermero(a)">Enfermero(a)</option><option value="Doctor(a)">Doctor(a)</option><option value="Otro">Otro</option>
+          </select>
+          <input type="text" id="workerRoleCustom" placeholder="Especifica tu puesto..." style="display: none; margin-top: 6px;">
         </div>
         <div class="form-group">
           <label for="evalDate">Fecha de Evaluación</label>
@@ -997,11 +1005,42 @@
   let currentProtocolKey = "";
   let currentWorkerInfo = {};
 
+  // Funciones para alternar campos personalizados de "Otro"
+  function toggleOtroArea() {
+    const sel = document.getElementById("workerAreaSelect");
+    const customInp = document.getElementById("workerAreaCustom");
+    if (sel.value === "Otro") {
+      customInp.style.display = "block";
+      customInp.focus();
+    } else {
+      customInp.style.display = "none";
+      customInp.value = "";
+    }
+  }
+
+  function toggleOtroPuesto() {
+    const sel = document.getElementById("workerRoleSelect");
+    const customInp = document.getElementById("workerRoleCustom");
+    if (sel.value === "Otro") {
+      customInp.style.display = "block";
+      customInp.focus();
+    } else {
+      customInp.style.display = "none";
+      customInp.value = "";
+    }
+  }
+
   function startEvaluation() {
     const name = document.getElementById("workerName").value.trim();
     const id = document.getElementById("workerId").value.trim();
-    const area = document.getElementById("workerArea").value.trim();
-    const role = document.getElementById("workerRole").value.trim();
+    const areaSelect = document.getElementById("workerAreaSelect").value;
+    const customArea = document.getElementById("workerAreaCustom").value.trim();
+    const area = areaSelect === "Otro" ? (customArea ? "Otro: " + customArea : "") : areaSelect;
+
+    const roleSelect = document.getElementById("workerRoleSelect").value;
+    const customRole = document.getElementById("workerRoleCustom").value.trim();
+    const role = roleSelect === "Otro" ? (customRole ? "Otro: " + customRole : "") : roleSelect;
+
     const date = document.getElementById("evalDate").value;
     const protocolKey = document.getElementById("protocolSelect").value;
 
@@ -1178,6 +1217,8 @@
     document.getElementById("results-section").style.display = "none";
     document.getElementById("quiz-section").style.display = "none";
     document.getElementById("setup-section").style.display = "block";
+    document.getElementById("workerAreaCustom").style.display = "none";
+    document.getElementById("workerRoleCustom").style.display = "none";
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
