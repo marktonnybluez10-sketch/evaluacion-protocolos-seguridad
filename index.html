@@ -907,7 +907,22 @@
       }
     };
 
-    function checkSession() {
+  function checkSession() {
+
+    // Ejecuta la función nativa original de tu dashboard y redimensiona las gráficas
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+      if (typeof handleFilterChange === 'function') {
+        handleFilterChange();
+      } else if (typeof updateDashboard === 'function') {
+        updateDashboard();
+      }
+    }, 150);
+  } else {
+    if (overlay) overlay.classList.remove('hidden');
+    if (adminBtn) adminBtn.classList.add('hidden');
+  }
+}
       const session = getCurrentSession();
       const overlay = document.getElementById('authGateOverlay');
       const adminBtn = document.getElementById('btnOpenAdmin');
