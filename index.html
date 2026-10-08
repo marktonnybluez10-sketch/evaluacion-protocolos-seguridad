@@ -163,7 +163,6 @@
         </button>
       </div>
 
-      <!-- Formulario para agregar usuario -->
       <form id="addUserForm" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5 p-3.5 bg-slate-800/60 rounded-xl border border-slate-700">
         <div>
           <label class="block text-[11px] font-semibold text-slate-300 mb-1">Nombre / Usuario</label>
@@ -182,7 +181,6 @@
         </div>
       </form>
 
-      <!-- Lista de usuarios activos -->
       <div class="flex-1 overflow-y-auto custom-scrollbar">
         <table class="w-full text-left text-xs">
           <thead class="text-slate-400 border-b border-slate-800 uppercase text-[10px]">
@@ -504,158 +502,11 @@
     <p class="text-slate-400">Sistema de Seguridad e Higiene Industrial &bull; Base de Datos Integrada GBRX (637 Registros) &bull; Módulo Autónomo para Toma de Decisiones y Prevención de Accidentes</p>
   </footer>
 
-  <!-- SCRIPT DE AUTENTICACIÓN Y GESTOR DE USUARIOS -->
-  <script>
-    const STORAGE_USERS_KEY = 'gbrx_auth_users';
-    const STORAGE_SESSION_KEY = 'gbrx_active_session';
-
-    const defaultAdmin = {
-      username: "admin",
-      password: "Admin2026*",
-      role: "admin"
-    };
-
-    function getStoredUsers() {
-      const raw = localStorage.getItem(STORAGE_USERS_KEY);
-      if (!raw) {
-        const initialList = [defaultAdmin];
-        localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(initialList));
-        return initialList;
-      }
-      return JSON.parse(raw);
-    }
-
-    function saveStoredUsers(users) {
-      localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(users));
-    }
-
-    function getCurrentSession() {
-      return JSON.parse(sessionStorage.getItem(STORAGE_SESSION_KEY));
-    }
-
-    function renderUserTable() {
-      const users = getStoredUsers();
-      const tbody = document.getElementById('userListBody');
-      tbody.innerHTML = '';
-
-      users.forEach(u => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="py-2.5 px-3 font-semibold text-slate-200">${u.username}</td>
-          <td class="py-2.5 px-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${u.role === 'admin' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-700 text-slate-300'}">
-              ${u.role.toUpperCase()}
-            </span>
-          </td>
-          <td class="py-2.5 px-3 text-right">
-            ${u.username !== 'admin' ? `
-              <button onclick="deleteUser('${u.username}')" class="text-rose-400 hover:text-rose-300 transition text-xs">
-                <i class="fa-solid fa-trash-can mr-1"></i> Eliminar
-              </button>
-            ` : '<span class="text-slate-500 text-[11px]">Principal</span>'}
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    window.deleteUser = function(username) {
-      if (confirm(`¿Deseas revocar el acceso a "${username}"?`)) {
-        let users = getStoredUsers().filter(u => u.username !== username);
-        saveStoredUsers(users);
-        renderUserTable();
-      }
-    };
-
-    function checkSession() {
-      const session = getCurrentSession();
-      const overlay = document.getElementById('authGateOverlay');
-      const adminBtn = document.getElementById('btnOpenAdmin');
-
-      if (session) {
-        overlay.classList.add('hidden');
-        if (session.role === 'admin') {
-          adminBtn.classList.remove('hidden');
-        } else {
-          adminBtn.classList.add('hidden');
-        }
-        // Corrección de renderizado: redibujar gráficas al mostrar la interfaz
-        setTimeout(() => {
-          if (typeof updateDashboard === 'function') {
-            updateDashboard();
-          }
-        }, 150);
-      } else {
-        overlay.classList.remove('hidden');
-        adminBtn.classList.add('hidden');
-      }
-    }
-
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const userIn = document.getElementById('loginUsername').value.trim();
-      const passIn = document.getElementById('loginPassword').value;
-      const errorMsg = document.getElementById('loginErrorMsg');
-
-      const users = getStoredUsers();
-      const match = users.find(u => u.username.toLowerCase() === userIn.toLowerCase() && u.password === passIn);
-
-      if (match) {
-        sessionStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify({ username: match.username, role: match.role }));
-        errorMsg.classList.add('hidden');
-        checkSession();
-      } else {
-        errorMsg.classList.remove('hidden');
-      }
-    });
-
-    document.getElementById('btnLogout').addEventListener('click', () => {
-      sessionStorage.removeItem(STORAGE_SESSION_KEY);
-      location.reload();
-    });
-
-    const adminModal = document.getElementById('adminModal');
-    document.getElementById('btnOpenAdmin').addEventListener('click', () => {
-      renderUserTable();
-      adminModal.classList.remove('hidden');
-    });
-    document.getElementById('btnCloseAdminModal').addEventListener('click', () => {
-      adminModal.classList.add('hidden');
-    });
-
-    document.getElementById('addUserForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const uName = document.getElementById('newUsername').value.trim();
-      const pWord = document.getElementById('newPassword').value.trim();
-
-      if (!uName || !pWord) return;
-
-      const users = getStoredUsers();
-      if (users.some(u => u.username.toLowerCase() === uName.toLowerCase())) {
-        alert('Ese nombre de usuario ya existe.');
-        return;
-      }
-
-      users.push({ username: uName, password: pWord, role: 'viewer' });
-      saveStoredUsers(users);
-      renderUserTable();
-      document.getElementById('addUserForm').reset();
-    });
-
-    document.getElementById('btnExportUsers').addEventListener('click', () => {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getStoredUsers(), null, 2));
-      const dlAnchor = document.createElement('a');
-      dlAnchor.setAttribute("href", dataStr);
-      dlAnchor.setAttribute("download", "usuarios_gbrx_seguridad.json");
-      dlAnchor.click();
-    });
-  </script>
-
-  <!-- BASE DE DATOS COMPLETA Y MOTOR DEL DASHBOARD -->
+  <!-- MOTOR COMPLETO: BASE DE DATOS Y LÓGICA DE VISUALIZACIÓN -->
   <script>
     document.getElementById('printDate').innerText = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    // Base de datos íntegra con todos los incidentes cargados
+    // Base de datos de incidentes
     const rawData = [
       {"id": 1, "fy": "FY2022", "fecha": "2021-09-01", "mes": "Septiembre", "dia": "Miércoles", "hora": "10:01 A 13:00", "rangoHora": "10:01 - 13:00", "area": "L6", "cuerpo": "ESPALDA / COLUMNA", "clasif": "A", "mecanismo": "GOLPEADO POR", "lesion": "CONTUSION", "agente": "Piezas Metálicas y Cargas", "gerente": "JULIO MENESES", "supervisor": "ADOLFO DELGADILLO", "edad": 41, "edadRango": "40 - 49 años", "turno": "1er Turno", "horario": "NORMAL", "proyecto": "TOLVA", "posicion": "COSTADOS", "desc": "GOLPE EN ESPALDA CON CARRETE", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
       {"id": 2, "fy": "FY2022", "fecha": "2021-09-07", "mes": "Septiembre", "dia": "Martes", "hora": "10:01 A 13:00", "rangoHora": "10:01 - 13:00", "area": "L4", "cuerpo": "ABDOMEN", "clasif": "A", "mecanismo": "GOLPEADO POR", "lesion": "CONTUSION", "agente": "Herramientas (Manuales/Poder)", "gerente": "MARCO POLO RESENDIZ", "supervisor": "MANUEL MACÍAS", "edad": 31, "edadRango": "30 - 39 años", "turno": "1er Turno", "horario": "NORMAL", "proyecto": "GÓNDOLA", "posicion": "GANTRY", "desc": "GOLPE POR MARRO PROYECTADO", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
@@ -676,11 +527,20 @@
       {"id": 17, "fy": "FY2022", "fecha": "2021-11-19", "mes": "Noviembre", "dia": "Viernes", "hora": "07:01 A 10:00", "rangoHora": "07:01 - 10:00", "area": "NAVE 5", "cuerpo": "MANO / DEDOS", "clasif": "A", "mecanismo": "PUNCIÓN", "lesion": "PUNCION", "agente": "Corte, Punción y Rebabas", "gerente": "MARCO POLO RESENDIZ", "supervisor": "DAVID OSTRIA", "edad": 23, "edadRango": "20 - 29 años", "turno": "1er Turno", "horario": "NORMAL", "proyecto": "MAXI", "posicion": "OUT THE DOOR", "desc": "PUNCION CON ALAMBRE", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
       {"id": 18, "fy": "FY2022", "fecha": "2021-11-24", "mes": "Noviembre", "dia": "Miércoles", "hora": "19:01 A 22:00", "rangoHora": "19:01 - 22:00", "area": "L4", "cuerpo": "OJOS", "clasif": "A", "mecanismo": "PROYECCIÓN DE PARTÍCULAS / SUSTANCIA", "lesion": "QUEMADURA", "agente": "Soldadura, Térmico y Chispas", "gerente": "MARCO POLO RESENDIZ", "supervisor": "MANUEL MACÍAS", "edad": 35, "edadRango": "30 - 39 años", "turno": "2do Turno", "horario": "NORMAL", "proyecto": "GÓNDOLA", "posicion": "SOLDADURA INTERIOR", "desc": "QUEMADURA DE PRIMER GRADO", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
       {"id": 19, "fy": "FY2022", "fecha": "2021-11-26", "mes": "Noviembre", "dia": "Viernes", "hora": "16:01 A 19:00", "rangoHora": "16:01 - 19:00", "area": "L4", "cuerpo": "MANO / DEDOS", "clasif": "A", "mecanismo": "GOLPEADO POR", "lesion": "CONTUSION", "agente": "Maquinaria y Equipos Fijos", "gerente": "MARCO POLO RESENDIZ", "supervisor": "MANUEL MACÍAS", "edad": 30, "edadRango": "30 - 39 años", "turno": "2do Turno", "horario": "NORMAL", "proyecto": "GÓNDOLA", "posicion": "GANTRY", "desc": "CONTUSION EN MANO POR ALIMENTADOR", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
-      {"id": 20, "fy": "FY2022", "fecha": "2021-11-29", "mes": "Noviembre", "dia": "Lunes", "hora": "07:01 A 10:00", "rangoHora": "07:01 - 10:00", "area": "NAVE 4", "cuerpo": "RODILLA", "clasif": "B1", "mecanismo": "CAÍDA AL MISMO NIVEL", "lesion": "LUXACION", "agente": "Manipulación General / Otros", "gerente": "MARCO POLO RESENDIZ", "supervisor": "CRISTIAN AVILA", "edad": 31, "edadRango": "30 - 39 años", "turno": "1er Turno", "horario": "NORMAL", "proyecto": "GÓNDOLA", "posicion": "ARMADO DE COSTADOS", "desc": "LUXACION EN RODILLA", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"}
-      // ... incluye todos los registros hasta el 610 aquí
+      {"id": 20, "fy": "FY2022", "fecha": "2021-11-29", "mes": "Noviembre", "dia": "Lunes", "hora": "07:01 A 10:00", "rangoHora": "07:01 - 10:00", "area": "NAVE 4", "cuerpo": "RODILLA", "clasif": "B1", "mecanismo": "CAÍDA AL MISMO NIVEL", "lesion": "LUXACION", "agente": "Manipulación General / Otros", "gerente": "MARCO POLO RESENDIZ", "supervisor": "CRISTIAN AVILA", "edad": 31, "edadRango": "30 - 39 años", "turno": "1er Turno", "horario": "NORMAL", "proyecto": "GÓNDOLA", "posicion": "ARMADO DE COSTADOS", "desc": "LUXACION EN RODILLA", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
+      {"id": 21, "fy": "FY2022", "fecha": "2021-11-29", "mes": "Noviembre", "dia": "Lunes", "hora": "22:01 A 01:00", "rangoHora": "22:01 - 01:00", "area": "FMP", "cuerpo": "PIE / TOBILLO", "clasif": "A", "mecanismo": "GOLPEADO POR", "lesion": "CONTUSION", "agente": "Caídas, Tropiezos y Pisadas", "gerente": "BERNARDO MORALES", "supervisor": "BRAULIO AGUAYO", "edad": 21, "edadRango": "20 - 29 años", "turno": "2do Turno", "horario": "NORMAL", "proyecto": "SIN PROYECTO ASIGNADO", "posicion": "ROL #3", "desc": "GOLPE EN EMPEINE POR CAIDA DE PIEZA", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
+      {"id": 22, "fy": "FY2022", "fecha": "2021-12-03", "mes": "Diciembre", "dia": "Viernes", "hora": "13:01 A 16:00", "rangoHora": "13:01 - 16:00", "area": "NAVE 2", "cuerpo": "MANO / DEDOS", "clasif": "A", "mecanismo": "CONTACTO CON", "lesion": "HERIDA CORTANTE", "agente": "Herramientas (Manuales/Poder)", "gerente": "FLAVIANO CUEVAS", "supervisor": "FAUSTO JIMÉNEZ", "edad": 34, "edadRango": "30 - 39 años", "turno": "1er Turno", "horario": "NORMAL", "proyecto": "REFRIGERADO", "posicion": "ARMADO DE FRENTES", "desc": "HERIDA CORTANTE EN DEDO PULGAR CON TALADRO", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
+      {"id": 23, "fy": "FY2022", "fecha": "2021-12-07", "mes": "Diciembre", "dia": "Martes", "hora": "10:01 A 13:00", "rangoHora": "10:01 - 13:00", "area": "FASE 2", "cuerpo": "PIE / TOBILLO", "clasif": "A", "mecanismo": "GOLPEADO POR", "lesion": "CONTUSION", "agente": "Herramientas (Manuales/Poder)", "gerente": "FLAVIANO CUEVAS", "supervisor": "JORGE TELLEZ", "edad": 25, "edadRango": "20 - 29 años", "turno": "1er Turno", "horario": "NORMAL", "proyecto": "AUTOMAX", "posicion": "RETROFIT", "desc": "GOLPE CON MARTILLO EN ESPINILLA", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
+      {"id": 24, "fy": "FY2022", "fecha": "2021-12-10", "mes": "Diciembre", "dia": "Viernes", "hora": "01:01 A 04:00", "rangoHora": "01:01 - 04:00", "area": "FMP", "cuerpo": "MANO / DEDOS", "clasif": "B1", "mecanismo": "CAÍDA A DIFERENTE NIVEL", "lesion": "FRACTURA", "agente": "Caídas, Tropiezos y Pisadas", "gerente": "BERNARDO MORALES", "supervisor": "VICTOR TEJEDA", "edad": 37, "edadRango": "30 - 39 años", "turno": "3er Turno", "horario": "NORMAL", "proyecto": "SIN PROYECTO ASIGNADO", "posicion": "TINA PANTHER", "desc": "CAIDA DE TINA PANTHER FMP", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
+      {"id": 25, "fy": "FY2022", "fecha": "2021-12-10", "mes": "Diciembre", "dia": "Viernes", "hora": "16:01 A 19:00", "rangoHora": "16:01 - 19:00", "area": "TALLER DE MANUFACTURA", "cuerpo": "MANO / DEDOS", "clasif": "A", "mecanismo": "PROYECCIÓN DE PARTÍCULAS / SUSTANCIA", "lesion": "QUEMADURA", "agente": "Soldadura, Térmico y Chispas", "gerente": "MARCOS MARQUEZ", "supervisor": "SANDRA FALCON", "edad": 25, "edadRango": "20 - 29 años", "turno": "2do Turno", "horario": "NORMAL", "proyecto": "SIN PROYECTO ASIGNADO", "posicion": "TALLER SMART", "desc": "QUEMADURA DE PRIMER GRADO SMART MOBILITY", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
+      {"id": 26, "fy": "FY2022", "fecha": "2021-12-13", "mes": "Diciembre", "dia": "Lunes", "hora": "10:01 A 13:00", "rangoHora": "10:01 - 13:00", "area": "FMP", "cuerpo": "PIE / TOBILLO", "clasif": "A", "mecanismo": "GOLPEADO POR", "lesion": "HERIDA ABRASIVA", "agente": "Corte, Punción y Rebabas", "gerente": "MARCOS MARQUEZ", "supervisor": "CLAUDIA ROMANO", "edad": 30, "edadRango": "30 - 39 años", "turno": "1er Turno", "horario": "NORMAL", "proyecto": "SIN PROYECTO ASIGNADO", "posicion": "PANTOGRAFO AVENGER 1", "desc": "HERIDA ABRASIVA EN TOBILLO", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
+      {"id": 27, "fy": "FY2022", "fecha": "2021-12-14", "mes": "Diciembre", "dia": "Martes", "hora": "07:01 A 10:00", "rangoHora": "07:01 - 10:00", "area": "NAVE 1", "cuerpo": "MANO / DEDOS", "clasif": "A", "mecanismo": "COMPRESIÓN", "lesion": "COMPRESION", "agente": "Fluidos a Presión y Químicos", "gerente": "FLAVIANO CUEVAS", "supervisor": "SILVESTRE MONTES", "edad": 47, "edadRango": "40 - 49 años", "turno": "1er Turno", "horario": "NORMAL", "proyecto": "MULTIMAX", "posicion": "ARMADO DE PISO EXTREMO", "desc": "COMPRESION EN DEDO DE MANO DERECHA CON PLACA", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
+      {"id": 28, "fy": "FY2022", "fecha": "2021-12-14", "mes": "Diciembre", "dia": "Martes", "hora": "10:01 A 13:00", "rangoHora": "10:01 - 13:00", "area": "FASE 2", "cuerpo": "MANO / DEDOS", "clasif": "B1", "mecanismo": "COMPRESIÓN", "lesion": "AVULSION", "agente": "Piezas Metálicas y Cargas", "gerente": "FLAVIANO CUEVAS", "supervisor": "JORGE TELLEZ", "edad": 22, "edadRango": "20 - 29 años", "turno": "1er Turno", "horario": "NORMAL", "proyecto": "AUTOMAX", "posicion": "RETROFIT", "desc": "AVULSION EN DEDO DE MANO DERECHA CON PANEL", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
+      {"id": 29, "fy": "FY2022", "fecha": "2021-12-16", "mes": "Diciembre", "dia": "Jueves", "hora": "10:01 A 13:00", "rangoHora": "10:01 - 13:00", "area": "FASE 2", "cuerpo": "OJOS", "clasif": "A", "mecanismo": "PROYECCIÓN DE PARTÍCULAS / SUSTANCIA", "lesion": "CONJUNTIVITIS QUIMICA", "agente": "Fluidos a Presión y Químicos", "gerente": "DANIEL RODRIGUEZ", "supervisor": "GABRIELA LOPEZ", "edad": 40, "edadRango": "40 - 49 años", "turno": "1er Turno", "horario": "NORMAL", "proyecto": "REFRIGERADO", "posicion": "INSULADO DE MARCO DE PUERTAS", "desc": "DISPARO DE COMPUESTO DE INSULADO", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"},
+      {"id": 30, "fy": "FY2022", "fecha": "2021-12-20", "mes": "Diciembre", "dia": "Lunes", "hora": "10:01 A 13:00", "rangoHora": "10:01 - 13:00", "area": "L4", "cuerpo": "CABEZA", "clasif": "A", "mecanismo": "GOLPEADO CONTRA", "lesion": "HERIDA CORTANTE", "agente": "Maquinaria y Equipos Fijos", "gerente": "MARCO POLO RESENDIZ", "supervisor": "FRANCISCO SOSA", "edad": 27, "edadRango": "20 - 29 años", "turno": "1er Turno", "horario": "NORMAL", "proyecto": "BOX CAR", "posicion": "LAMINACION DE COSTADOS", "desc": "GOLPE EN CABEZA CON BOOM", "ingSeguridad": "NO APLICA / NO REGISTRADO", "tipoHorario": "NORMAL"}
+      // NOTA: Para no omitir ningún dato, pega aquí la totalidad de los 610 registros de tu archivo fuente
     ];
 
-    // Dimensiones de filtrado
     const filterDefs = [
       { key: 'fy', label: 'Año Fiscal (FY)' },
       { key: 'mes', label: 'Mes' },
@@ -1106,11 +966,11 @@
       updateTable(data);
     }
 
-    // Inicialización del Dashboard
+    // Inicializar filtros y verificar sesión
     initFilters();
     checkSession();
 
-    // Redimensionamiento seguro en navegadores móviles y escritorio
+    // Redimensionamiento
     window.addEventListener('resize', () => {
       if (getCurrentSession()) {
         if (chartFYInstance) chartFYInstance.resize();
