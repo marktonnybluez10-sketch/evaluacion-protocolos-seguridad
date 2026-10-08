@@ -550,17 +550,20 @@
     <p>Banco Dinámico de Protocolos y Tablero Estadístico de Competencias</p>
   </header>
 
-  <!-- PESTAÑAS PRINCIPALES -->
-  <div class="nav-tabs no-print">
+  <!-- PESTAÑAS PRINCIPALES CON CONTROL DE ACCESO -->
+  <div class="nav-tabs no-print" id="navTabsContainer">
     <button class="tab-btn active" id="tabQuizBtn" onclick="switchTab('quiz')">
-      <span>📝</span> Evaluación de Protocolo
+      <span>📝</span> Realizar Evaluación
     </button>
-    <button class="tab-btn" id="tabDashBtn" onclick="switchTab('dashboard')">
-      <span>📊</span> Tablero Estadístico y Gráficos
+    <button class="tab-btn" id="tabDashBtn" onclick="requestAdminAccess('dashboard')" style="display: none;">
+      <span>📊</span> Tablero Estadístico
       <span class="tab-badge" id="badgeCount">0</span>
     </button>
-    <button class="tab-btn" id="tabHistBtn" onclick="switchTab('history')">
+    <button class="tab-btn" id="tabHistBtn" onclick="requestAdminAccess('history')" style="display: none;">
       <span>📁</span> Historial y Base de Datos
+    </button>
+    <button class="tab-btn" id="adminToggleBtn" onclick="toggleAdminLogin()" style="flex: 0 0 auto; max-width: 220px; background: #cbd5e1; color: var(--primary);">
+      <span>🔒</span> <span id="adminBtnText">Acceso Administrador</span>
     </button>
   </div>
 
@@ -651,7 +654,7 @@
 
         <div style="display: flex; gap: 14px; margin-top: 24px; flex-wrap: wrap;" class="no-print">
           <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir Evidencia PDF</button>
-          <button class="btn btn-success" onclick="switchTab('dashboard')">📈 Ver en Tablero Estadístico</button>
+          <button class="btn btn-success" onclick="requestAdminAccess('dashboard')">📈 Ver en Tablero (Admin)</button>
           <button class="btn" onclick="resetApp()">🔄 Nueva Evaluación</button>
         </div>
       </div>
@@ -779,6 +782,21 @@
       </div>
     </section>
   </div>
+  <!-- MODAL DE ACCESO ADMINISTRADOR -->
+  <div id="adminModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: 26px; max-width: 380px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); text-align: center; border: 1px solid var(--border);">
+      <div style="font-size: 2.2rem; margin-bottom: 8px;">🔐</div>
+      <h3 style="color: var(--primary); font-size: 1.25rem; font-weight: 700; margin-bottom: 6px;">Área Administrativa</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 18px;">Ingresa la clave de acceso de Seguridad para visualizar los registros y métricas de planta.</p>
+      <input type="password" id="adminPasswordInput" placeholder="Contraseña de Administrador" style="width: 100%; padding: 12px 14px; border-radius: 8px; border: 1.5px solid var(--border); font-size: 1rem; margin-bottom: 14px; text-align: center;" onkeydown="if(event.key === 'Enter') verifyAdminPassword()">
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-secondary" style="flex: 1; padding: 10px;" onclick="closeAdminModal()">Cancelar</button>
+        <button class="btn" style="flex: 1; padding: 10px;" onclick="verifyAdminPassword()">Acceder</button>
+      </div>
+      <div id="adminErrorMsg" style="color: var(--danger); font-size: 0.8rem; font-weight: 700; margin-top: 10px; display: none;">Contraseña incorrecta. Intenta nuevamente.</div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -858,10 +876,97 @@
     document.getElementById("evalDate").value = today;
 
     updateBadgeCount();
+    updateAdminUI();
   };
+
+  // ==========================================
+  // SEGURIDAD Y CONTROL DE ACCESO ADMINISTRATIVO
+  // ==========================================
+  // Clave maestra para acceder al tablero estadístico y base de datos
+  const ADMIN_PASSWORD = "Seguridad2025";
+  let targetTabAfterLogin = "dashboard";
+
+  function isAdminAuthenticated() {
+    return sessionStorage.getItem("GSR_ADMIN_AUTH") === "true";
+  }
+
+  function updateAdminUI() {
+    const isAuth = isAdminAuthenticated();
+    const dashBtn = document.getElementById("tabDashBtn");
+    const histBtn = document.getElementById("tabHistBtn");
+    const adminToggle = document.getElementById("adminToggleBtn");
+    const adminText = document.getElementById("adminBtnText");
+
+    if (isAuth) {
+      dashBtn.style.display = "inline-flex";
+      histBtn.style.display = "inline-flex";
+      adminText.textContent = "Cerrar Admin";
+      adminToggle.style.background = "#fee2e2";
+      adminToggle.style.color = "#b91c1c";
+    } else {
+      dashBtn.style.display = "none";
+      histBtn.style.display = "none";
+      adminText.textContent = "Acceso Admin";
+      adminToggle.style.background = "#cbd5e1";
+      adminToggle.style.color = "var(--primary)";
+    }
+  }
+
+  function toggleAdminLogin() {
+    if (isAdminAuthenticated()) {
+      if (confirm("¿Deseas cerrar la sesión de Administrador?")) {
+        sessionStorage.removeItem("GSR_ADMIN_AUTH");
+        updateAdminUI();
+        switchTab("quiz");
+      }
+    } else {
+      openAdminModal("dashboard");
+    }
+  }
+
+  function requestAdminAccess(targetTab) {
+    if (isAdminAuthenticated()) {
+      switchTab(targetTab);
+    } else {
+      openAdminModal(targetTab);
+    }
+  }
+
+  function openAdminModal(targetTab) {
+    targetTabAfterLogin = targetTab || "dashboard";
+    const modal = document.getElementById("adminModal");
+    const input = document.getElementById("adminPasswordInput");
+    const errorMsg = document.getElementById("adminErrorMsg");
+    errorMsg.style.display = "none";
+    input.value = "";
+    modal.style.display = "flex";
+    setTimeout(() => input.focus(), 100);
+  }
+
+  function closeAdminModal() {
+    document.getElementById("adminModal").style.display = "none";
+  }
+
+  function verifyAdminPassword() {
+    const input = document.getElementById("adminPasswordInput").value.trim();
+    const errorMsg = document.getElementById("adminErrorMsg");
+    if (input === ADMIN_PASSWORD) {
+      sessionStorage.setItem("GSR_ADMIN_AUTH", "true");
+      closeAdminModal();
+      updateAdminUI();
+      switchTab(targetTabAfterLogin);
+    } else {
+      errorMsg.style.display = "block";
+    }
+  }
 
   // Control de Pestañas
   function switchTab(tabName) {
+    if ((tabName === "dashboard" || tabName === "history") && !isAdminAuthenticated()) {
+      requestAdminAccess(tabName);
+      return;
+    }
+
     document.getElementById("view-quiz").style.display = tabName === "quiz" ? "block" : "none";
     document.getElementById("view-dashboard").style.display = tabName === "dashboard" ? "block" : "none";
     document.getElementById("view-history").style.display = tabName === "history" ? "block" : "none";
